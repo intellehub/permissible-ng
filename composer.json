@@ -1,0 +1,46 @@
+{
+  "name": "shah-newaz/permissible",
+  "description": "Role Permission system for Laravel",
+  "keywords": ["laravel", "admin", "backend", "ACL", "Role", "Permission", "Role Permission"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Shahnewaz Rifat",
+      "email": "rifat_rifats@live.com"
+    }
+  ],
+  "require": {
+    "php": "^7.2",
+    "laravel/framework": "^7.0",
+    "firebase/php-jwt": "^5.0",
+    "vlucas/phpdotenv": "^4.0",
+    "guzzlehttp/guzzle": "^6.3",
+    "tymon/jwt-auth": "1.0.*@dev"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8.5"
+  },
+  "autoload": {
+    "classmap": [
+        "database",
+        "database/migrations",
+        "database/seeds"
+    ],
+    "psr-4": {
+        "Shahnewaz\\Permissible\\": "src/"
+    },
+    "files": [
+        "src/helpers/general.php"
+    ]
+  },
+	"extra": {
+    "laravel": {
+      "providers": [
+        "Shahnewaz\\Permissible\\Providers\\PermissibleServiceProvider"
+      ],
+      "aliases": {
+        "Permissible": "Shahnewaz\\Permissible\\Facades\\PermissibleFacade"
+      }
+    }
+	}
+}
