@@ -1,10 +1,10 @@
 <?php
-namespace Shahnewaz\Permissible\Database\Seeder;
+namespace Shahnewaz\PermissibleNg\Database\Seeder;
 
 use App\User;
-use Shahnewaz\Permissible\Role;
+use Shahnewaz\PermissibleNg\Role;
 use Illuminate\Database\Seeder;
-use Shahnewaz\Permissible\Permission;
+use Shahnewaz\PermissibleNg\Permission;
 use Illuminate\Support\Facades\Schema;
 
 class RolePermissionSeeder extends Seeder

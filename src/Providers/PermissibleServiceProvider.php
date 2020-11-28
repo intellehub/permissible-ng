@@ -1,11 +1,11 @@
 <?php
 
-namespace Shahnewaz\Permissible\Providers;
+namespace Shahnewaz\PermissibleNg\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Shahnewaz\Permissible\Console\Commands\Setup;
-use Shahnewaz\Permissible\Services\PermissibleService;
-use Shahnewaz\Permissible\Console\Commands\RolePermissionSeed;
+use Shahnewaz\PermissibleNg\Console\Commands\Setup;
+use Shahnewaz\PermissibleNg\Services\PermissibleService;
+use Shahnewaz\PermissibleNg\Console\Commands\RolePermissionSeed;
 
 
 class PermissibleServiceProvider extends ServiceProvider
@@ -47,10 +47,10 @@ class PermissibleServiceProvider extends ServiceProvider
         $this->mergeConfigFrom($this->packagePath('config/permissible.php'), 'permissible');
         // Add route middlewares
         $this->app['router']->aliasMiddleware(
-            'role', \Shahnewaz\Permissible\Http\Middleware\RoleAccessGuard::class
+            'role', \Shahnewaz\PermissibleNg\Http\Middleware\RoleAccessGuard::class
         );
         $this->app['router']->aliasMiddleware(
-            'permission', \Shahnewaz\Permissible\Http\Middleware\PermissionAccessGuard::class
+            'permission', \Shahnewaz\PermissibleNg\Http\Middleware\PermissionAccessGuard::class
         );
 
         // Register Permissible Service

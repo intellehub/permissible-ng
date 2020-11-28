@@ -1,6 +1,6 @@
 <?php
 
-namespace Shahnewaz\Permissible\Facades;
+namespace Shahnewaz\PermissibleNg\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

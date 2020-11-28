@@ -1,6 +1,6 @@
 <?php
 
-namespace Shahnewaz\Permissible\Http\Requests;
+namespace Shahnewaz\PermissibleNg\Http\Requests;
 
 use App\User;
 use Illuminate\Foundation\Http\FormRequest;

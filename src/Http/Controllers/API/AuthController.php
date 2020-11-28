@@ -1,6 +1,6 @@
 <?php
 
-namespace Shahnewaz\Permissible\Http\Controllers\API;
+namespace Shahnewaz\PermissibleNg\Http\Controllers\API;
 
 use JWTAuth;
 use JWTFactory;

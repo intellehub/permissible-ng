@@ -1,9 +1,9 @@
 <?php
 
-namespace Shahnewaz\Permissible\Http\Middleware;
+namespace Shahnewaz\PermissibleNg\Http\Middleware;
 
 use Closure;
-use Shahnewaz\Permissible\Exceptions\FeatureNotAllowedException;
+use Shahnewaz\PermissibleNg\Exceptions\FeatureNotAllowedException;
 
 class PermissionAccessGuard
 {

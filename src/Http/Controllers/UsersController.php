@@ -1,13 +1,13 @@
 <?php
 
-namespace Shahnewaz\Permissible\Http\Controllers;
+namespace Shahnewaz\PermissibleNg\Http\Controllers;
 
 use DB;
 use App\User;
 use Illuminate\Http\Request;
-use Shahnewaz\Permissible\Role;
+use Shahnewaz\PermissibleNg\Role;
 use App\Http\Controllers\Controller;
-use Shahnewaz\Permissible\Http\Requests\UserRequest;
+use Shahnewaz\PermissibleNg\Http\Requests\UserRequest;
 
 class UsersController extends Controller
 {

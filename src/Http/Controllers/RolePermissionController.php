@@ -1,10 +1,10 @@
 <?php
 
-namespace Shahnewaz\Permissible\Http\Controllers;
+namespace Shahnewaz\PermissibleNg\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Shahnewaz\Permissible\Role;
-use Shahnewaz\Permissible\Permission;
+use Shahnewaz\PermissibleNg\Role;
+use Shahnewaz\PermissibleNg\Permission;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 

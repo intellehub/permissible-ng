@@ -1,6 +1,6 @@
 <?php
 
-namespace Shahnewaz\Permissible\Console\Commands;
+namespace Shahnewaz\PermissibleNg\Console\Commands;
 
 use Artisan;
 use Illuminate\Console\Command;
@@ -68,7 +68,7 @@ class Setup extends Command
             // Use statement
             $firstUseStatement = min(array_keys(preg_grep("~use~", $modelFile)));
             $currentUseStatement = $modelFile[$firstUseStatement];
-            $modelFile[$firstUseStatement] = $currentUseStatement.PHP_EOL.'use Shahnewaz\Permissible\Permissible;'.PHP_EOL;
+            $modelFile[$firstUseStatement] = $currentUseStatement.PHP_EOL.'use Shahnewaz\PermissibleNg\Permissible;'.PHP_EOL;
 
             // Class definition
             $classStatement = min(array_keys(preg_grep("~class~", $modelFile)));

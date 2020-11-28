@@ -1,5 +1,5 @@
 <?php
-namespace Shahnewaz\Permissible\Services;
+namespace Shahnewaz\PermissibleNg\Services;
 
 class PermissibleService {
     

@@ -1,8 +1,8 @@
 <?php 
 
-namespace Shahnewaz\Permissible\Traits;
+namespace Shahnewaz\PermissibleNg\Traits;
 
-use Shahnewaz\Permissible\Role;
+use Shahnewaz\PermissibleNg\Role;
 
 trait Permissible {
 

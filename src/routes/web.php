@@ -1,6 +1,6 @@
 <?php
 
-Route::namespace('Shahnewaz\Permissible\Http\Controllers')->middleware('web')->group(function () {
+Route::namespace('Shahnewaz\PermissibleNg\Http\Controllers')->middleware('web')->group(function () {
 	
 	Route::middleware(['auth', 'role:su'])->prefix('permissible')->group(function () {
     // User Manager

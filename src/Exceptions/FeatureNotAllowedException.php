@@ -1,5 +1,5 @@
 <?php
-namespace Shahnewaz\Permissible\Exceptions;
+namespace Shahnewaz\PermissibleNg\Exceptions;
 
 class FeatureNotAllowedException extends \Exception {
 	public function __construct ($message = null, $code = 401) {

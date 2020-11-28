@@ -1,10 +1,10 @@
 <?php
 
-namespace Shahnewaz\Permissible\Http\Middleware;
+namespace Shahnewaz\PermissibleNg\Http\Middleware;
 
 use Closure;
-use Shahnewaz\Permissible\Role;
-use Shahnewaz\Permissible\Exceptions\FeatureNotAllowedException;
+use Shahnewaz\PermissibleNg\Role;
+use Shahnewaz\PermissibleNg\Exceptions\FeatureNotAllowedException;
 
 class RoleAccessGuard
 {

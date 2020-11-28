@@ -1,6 +1,6 @@
 <?php
 
-namespace Shahnewaz\Permissible\Console\Commands;
+namespace Shahnewaz\PermissibleNg\Console\Commands;
 
 use Artisan;
 use Illuminate\Console\Command;
@@ -38,7 +38,7 @@ class RolePermissionSeed extends Command
      */
     public function handle()
     {
-        Artisan::call('db:seed', [ '--class' => 'Shahnewaz\Permissible\Database\Seeder\RolePermissionSeeder']);
+        Artisan::call('db:seed', [ '--class' => 'Shahnewaz\PermissibleNg\Database\Seeder\RolePermissionSeeder']);
         $this->info('Permissible roles and permissions seeded!');
     }
 }

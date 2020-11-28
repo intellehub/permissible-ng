@@ -1,6 +1,6 @@
 <?php
 
-namespace Shahnewaz\Permissible;
+namespace Shahnewaz\PermissibleNg;
 
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +8,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\Access\Authorizable;
-use Shahnewaz\Permissible\Traits\Permissible as PermissibleTrait;
+use Shahnewaz\PermissibleNg\Traits\Permissible as PermissibleTrait;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;

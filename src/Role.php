@@ -1,8 +1,8 @@
 <?php 
-namespace Shahnewaz\Permissible;
+namespace Shahnewaz\PermissibleNg;
 
 use App\User;
-use Shahnewaz\Permissible\Permission;
+use Shahnewaz\PermissibleNg\Permission;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
