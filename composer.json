@@ -1,7 +1,15 @@
 {
   "name": "shah-newaz/permissible-ng",
   "description": "Role Permission system for Laravel 8",
-  "keywords": ["laravel", "admin", "backend", "ACL", "Role", "Permission", "Role Permission"],
+  "keywords": [
+    "laravel",
+    "admin",
+    "backend",
+    "ACL",
+    "Role",
+    "Permission",
+    "Role Permission"
+  ],
   "license": "MIT",
   "authors": [
     {
@@ -22,18 +30,18 @@
   },
   "autoload": {
     "classmap": [
-        "database",
-        "database/migrations",
-        "database/seeds"
+      "database",
+      "database/migrations",
+      "database/seeds"
     ],
     "psr-4": {
-        "Shahnewaz\\PermissibleNg\\": "src/"
+      "Shahnewaz\\PermissibleNg\\": "src/"
     },
     "files": [
-        "src/helpers/general.php"
+      "src/helpers/general.php"
     ]
   },
-	"extra": {
+  "extra": {
     "laravel": {
       "providers": [
         "Shahnewaz\\PermissibleNg\\Providers\\PermissibleServiceProvider"
@@ -42,5 +50,5 @@
         "Permissible": "Shahnewaz\\PermissibleNg\\Facades\\PermissibleFacade"
       }
     }
-	}
+  }
 }
