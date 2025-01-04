@@ -18,6 +18,7 @@ return new class extends Migration
                 $hasFirstNameColumn = Schema::hasColumn('users', 'first_name');
                 $hasLastNameColumn = Schema::hasColumn('users', 'last_name');
                 $hasNameColumn = Schema::hasColumn('users', 'name');
+                $hasSoftDeletes = Schema::hasColumn('users', 'deleted_at');
 
                 if ($hasNameColumn) {
                     $table->dropColumn('name');
@@ -29,6 +30,10 @@ return new class extends Migration
 
                 if (!$hasFirstNameColumn) {
                     $table->string('first_name')->after('id');
+                }
+
+                if (!$hasSoftDeletes) {
+                    $table->softDeletes();
                 }
             }
         });
@@ -48,6 +53,7 @@ return new class extends Migration
                 $hasFirstNameColumn = Schema::hasColumn('users', 'first_name');
                 $hasLastNameColumn = Schema::hasColumn('users', 'last_name');
                 $hasNameColumn = Schema::hasColumn('users', 'name');
+                $hasSoftDeletes = Schema::hasColumn('users', 'deleted_at');
 
                 if (!$hasNameColumn) {
                     $table->string('name')->after('id');
@@ -59,6 +65,10 @@ return new class extends Migration
 
                 if ($hasFirstNameColumn) {
                     $table->dropColumn('first_name');
+                }
+
+                if ($hasSoftDeletes) {
+                    $table->dropColumn('deleted_at');
                 }
 
             });
