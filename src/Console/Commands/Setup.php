@@ -2,7 +2,6 @@
 
 namespace Shahnewaz\PermissibleNg\Console\Commands;
 
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
@@ -48,38 +47,67 @@ class Setup extends Command
         $this->info('Permissible setup complete.');
     }
 
-
-    /**
-     * Write permissible trait into the Authenticable Model
-     * */
-    public function modifyUserModel () {
+    public function modifyUserModel()
+    {
         $files = new Filesystem;
-
         $model = 'User';
-        $modelFilePath = app_path('Models/'.$model.'.php');
+        $modelFilePath = app_path('Models/' . $model . '.php');
 
-        $modelFile = file($modelFilePath);
+        // Check if the file exists
+        if (!$files->exists($modelFilePath)) {
+            $this->error('Model file not found: ' . $modelFilePath);
+            return;
+        }
+
+        // Read the file contents
+        try {
+            $modelFile = file($modelFilePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        } catch (\Exception $e) {
+            $this->error('Failed to read the model file: ' . $e->getMessage());
+            return;
+        }
 
         // Is model already using the trait?
         $modelUsingPermissible = count(preg_grep("~Permissible~", $modelFile));
-        
-        if ($modelUsingPermissible === 0) {
 
-            // Use statement
-            $firstUseStatement = min(array_keys(preg_grep("~use~", $modelFile)));
-            $currentUseStatement = $modelFile[$firstUseStatement];
-            $modelFile[$firstUseStatement] = $currentUseStatement.PHP_EOL.'use Shahnewaz\PermissibleNg\Permissible;'.PHP_EOL;
-
-            // Class definition
-            $classStatement = min(array_keys(preg_grep("~class~", $modelFile)));
-            $modelFile[$classStatement] = 'class User extends Permissible'.PHP_EOL;
-
-            $files->put($modelFilePath, $modelFile[0]);
-            $this->info('Permissible integrated into system.');
-        } else {
+        if ($modelUsingPermissible > 0) {
             $this->info('Model file already using Permissible! Skipping...');
+            return;
         }
 
-    }
+        // Backup the original file
+        $backupFilePath = $modelFilePath . '.backup';
+        try {
+            $files->copy($modelFilePath, $backupFilePath);
+        } catch (\Exception $e) {
+            $this->error('Failed to create a backup of the model file: ' . $e->getMessage());
+            return;
+        }
 
+        try {
+            // Add the `use` statement
+            $firstUseStatement = min(array_keys(preg_grep("~^use ~", $modelFile)));
+            $currentUseStatement = $modelFile[$firstUseStatement];
+            $modelFile[$firstUseStatement] = $currentUseStatement . PHP_EOL . 'use Shahnewaz\PermissibleNg\Permissible;';
+
+            // Modify the class definition
+            $classStatement = min(array_keys(preg_grep("~^class ~", $modelFile)));
+            $modelFile[$classStatement] = 'class User extends Permissible';
+
+            // Write the modified file
+            $files->put($modelFilePath, implode(PHP_EOL, $modelFile));
+
+            $this->info('Permissible integrated into the system.');
+        } catch (\Exception $e) {
+            // Restore the backup in case of any failure
+            $files->copy($backupFilePath, $modelFilePath);
+            $this->error('Operation failed: ' . $e->getMessage());
+            return;
+        } finally {
+            // Clean up the backup file
+            if ($files->exists($backupFilePath)) {
+                $files->delete($backupFilePath);
+            }
+        }
+    }
 }
