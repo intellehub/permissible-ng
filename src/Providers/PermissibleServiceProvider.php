@@ -72,13 +72,11 @@ class PermissibleServiceProvider extends ServiceProvider
     // Class loaders for package
     public function load () {
         // Routes
-        $this->loadRoutesFrom($this->packagePath('src/routes/web.php'));
+        $this->loadRoutesFrom($this->packagePath('src/routes/api.php'));
         // Migrations
         $this->loadMigrationsFrom($this->packagePath('database/migrations'));
         // Translations
         $this->loadTranslationsFrom($this->packagePath('resources/lang'), 'permissible');
-         // Views
-        $this->loadViewsFrom($this->packagePath('resources/views'), 'permissible');
     }
 
     // Publish required resouces from package
@@ -108,10 +106,5 @@ class PermissibleServiceProvider extends ServiceProvider
         $this->publishes([
             $this->packagePath('config/auth.php') => config_path('auth.php'),
         ], 'config');
-
-        // Publish views
-        $this->publishes([
-            $this->packagePath('resources/views') => resource_path('views/vendor'),
-        ], 'permissible-views');
     }
 }

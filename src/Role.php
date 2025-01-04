@@ -1,7 +1,7 @@
 <?php 
 namespace Shahnewaz\PermissibleNg;
 
-use App\User;
+use App\Models\User;
 use Shahnewaz\PermissibleNg\Permission;
 use Illuminate\Database\Eloquent\Model;
 

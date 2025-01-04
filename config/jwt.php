@@ -97,6 +97,7 @@ return [
     | Some people may want this behaviour for e.g. a mobile app.
     | This is not particularly recommended, so make sure you have appropriate
     | systems in place to revoke the token if necessary.
+    | Notice: If you set this to null you should remove 'exp' element from 'required_claims' list.
     |
     */
 
@@ -128,12 +129,9 @@ return [
     |
     | Specify the hashing algorithm that will be used to sign the token.
     |
-    | See here: https://github.com/namshi/jose/tree/master/src/Namshi/JOSE/Signer/OpenSSL
-    | for possible values.
-    |
     */
 
-    'algo' => env('JWT_ALGO', 'HS256'),
+    'algo' => env('JWT_ALGO', Tymon\JWTAuth\Providers\JWT\Provider::ALGO_HS256),
 
     /*
     |--------------------------------------------------------------------------
@@ -248,11 +246,11 @@ return [
     | see https://laravel.com/docs/master/responses#cookies-and-encryption
     | for details.
     |
-    | Set it to false if you don't want to decrypt cookies.
+    | Set it to true if you want to decrypt cookies.
     |
     */
 
-    'decrypt_cookies' => true,
+    'decrypt_cookies' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -274,7 +272,7 @@ return [
         |
         */
 
-        'jwt' => Tymon\JWTAuth\Providers\JWT\Namshi::class,
+        'jwt' => Tymon\JWTAuth\Providers\JWT\Lcobucci::class,
 
         /*
         |--------------------------------------------------------------------------

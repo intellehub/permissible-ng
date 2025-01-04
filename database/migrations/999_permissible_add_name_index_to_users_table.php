@@ -3,8 +3,9 @@
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\Schema;
 
-class PermissibleAddNameIndexToUsersTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +14,19 @@ class PermissibleAddNameIndexToUsersTable extends Migration
      */
     public function up()
     {
+        $pgSqlStmt = "CREATE INDEX fullNameIndex ON users USING gin(to_tsvector('english', first_name || ' ' || last_name))";
+        $mySqlStmt = "ALTER TABLE users ADD FULLTEXT fullNameIndex (first_name,last_name);";
+
         if (config('permissible.first_last_name_migration', false) === true) {
             
             if (env('DB_CONNECTION') === 'pgsql') {
                 // Postgresql
-                DB::statement("CREATE INDEX fullNameIndex ON users USING gin(to_tsvector('english', first_name || ' ' || last_name))");
+                DB::statement($pgSqlStmt);
             } elseif (env('DB_CONNECTION') === 'mysql') {
                 // MySQL
-                DB::statement('ALTER TABLE users ADD FULLTEXT fullNameIndex (first_name,last_name);');
+                DB::statement($mySqlStmt);
             } else {
-                // Silence
+                throw new Exception("DB type not supported yet.");
             }
         }
 
@@ -43,4 +47,4 @@ class PermissibleAddNameIndexToUsersTable extends Migration
             }
         });
     }
-}
+};

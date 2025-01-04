@@ -1,11 +1,9 @@
 <?php
 namespace Shahnewaz\PermissibleNg\Database\Seeder;
 
-use App\User;
 use Shahnewaz\PermissibleNg\Role;
 use Illuminate\Database\Seeder;
 use Shahnewaz\PermissibleNg\Permission;
-use Illuminate\Support\Facades\Schema;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -20,9 +18,9 @@ class RolePermissionSeeder extends Seeder
         Role::truncate();
         
         // Create major roles
-        $su = Role::firstOrcreate(['name' => 'Super User'], ['code' => 'su', 'weight' => 1]);
-        $admin = Role::firstOrcreate(['name' => 'Admin'], ['code' => 'admin', 'weight' => 2]);
-        $moderator = Role::firstOrcreate(['name' => 'Staff'], ['code' => 'staff', 'weight' => 3]);
+        Role::firstOrcreate(['name' => 'Super User'], ['code' => 'su', 'weight' => 1]);
+        Role::firstOrcreate(['name' => 'Admin'], ['code' => 'admin', 'weight' => 2]);
+        Role::firstOrcreate(['name' => 'Staff'], ['code' => 'staff', 'weight' => 3]);
 
         // Create permissions
         Permission::truncate();
@@ -66,7 +64,7 @@ class RolePermissionSeeder extends Seeder
             ]; 
         }
 
-        $su = User::firstOrCreate(
+        $su = App\Models\User::firstOrCreate(
             [ 'email' => 'super_user@app.dev' ],
             $fillables
         );

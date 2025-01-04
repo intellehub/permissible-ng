@@ -2,7 +2,7 @@
 
 namespace Shahnewaz\PermissibleNg\Console\Commands;
 
-use Artisan;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
@@ -37,7 +37,7 @@ class Setup extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): void
     {
         $this->modifyUserModel();
         $this->call('migrate');
@@ -56,7 +56,7 @@ class Setup extends Command
         $files = new Filesystem;
 
         $model = 'User';
-        $modelFilePath = app_path($model.'.php');
+        $modelFilePath = app_path('Models/'.$model.'.php');
 
         $modelFile = file($modelFilePath);
 
@@ -74,7 +74,7 @@ class Setup extends Command
             $classStatement = min(array_keys(preg_grep("~class~", $modelFile)));
             $modelFile[$classStatement] = 'class User extends Permissible'.PHP_EOL;
 
-            $files->put($modelFilePath, $modelFile);
+            $files->put($modelFilePath, $modelFile[0]);
             $this->info('Permissible integrated into system.');
         } else {
             $this->info('Model file already using Permissible! Skipping...');

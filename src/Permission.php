@@ -34,7 +34,7 @@ class Permission extends Model
      * Creates a Permission passed in the form `type.name`
      *
      * @param $permission
-     * @return \App\Permission
+     * @return Shahnewaz\PermissibleNg\Permission
      */
     public static function createPermission($permission) {
         $params = self::getPermissionParts($permission);
@@ -45,7 +45,7 @@ class Permission extends Model
      * Finds a Permission passed in the form `type.name`
      *
      * @param $permission
-     * @return \App\Permission | null
+     * @return Shahnewaz\PermissibleNg\Permission | null
      */
     public static function getPermission($permission) {
         $params = self::getPermissionParts($permission);

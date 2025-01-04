@@ -6,27 +6,16 @@ use Shahnewaz\PermissibleNg\Role;
 
 trait Permissible {
 
-    /**
-     * User has many roles
-     * @return Illuminate\Database\Eloquent\Relations\BelongsToMany
-     * */
-    public function roles() {
+    public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany {
         return $this->belongsToMany(Role::class);
     }
 
-
-    /**
-     * @return Bool checks if user has certain role
-     * */
-    public function hasRole($role) {
+    public function hasRole($role): bool {
         $roles = $this->roles()->pluck('code')->toArray();
         return in_array($role, $roles);
     }
 
-    /**
-     * @return  Boolean whether a user can do certain activity
-     * */
-    public function hasPermission($permission, $arguments = []) {
+    public function hasPermission($permission, $arguments = []): bool {
         foreach($this->roles as $role) {
             if($role->hasPermission($permission)) {
                 return true;
@@ -35,10 +24,8 @@ trait Permissible {
         return false;
     }
 
-    /**
-     * @return  Array list of permissions a user has
-     * */
-    public function getPermissionsAttribute () {
+    public function getPermissionsAttribute (): array
+    {
         $permissions = [];
         foreach ($this->roles as $role) {
             $rolePermissions = [];

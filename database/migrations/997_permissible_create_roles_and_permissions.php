@@ -2,8 +2,9 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\Schema;
 
-class PermissibleCreateRolesAndPermissions extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -122,4 +123,4 @@ class PermissibleCreateRolesAndPermissions extends Migration
         Schema::dropIfExists('role_user');
         Schema::dropIfExists('role_permission');
     }
-}
+};

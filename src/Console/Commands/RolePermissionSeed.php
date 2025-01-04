@@ -2,7 +2,7 @@
 
 namespace Shahnewaz\PermissibleNg\Console\Commands;
 
-use Artisan;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Console\Command;
 
 class RolePermissionSeed extends Command
