@@ -64,7 +64,7 @@ class RolePermissionSeeder extends Seeder
             ]; 
         }
 
-        $su = App\Models\User::firstOrCreate(
+        $su = \App\Models\User::firstOrCreate(
             [ 'email' => 'super_user@app.dev' ],
             $fillables
         );

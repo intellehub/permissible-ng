@@ -36,7 +36,7 @@ class RolePermissionSeed extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): void
     {
         Artisan::call('db:seed', [ '--class' => 'Shahnewaz\PermissibleNg\Database\Seeder\RolePermissionSeeder']);
         $this->info('Permissible roles and permissions seeded!');
