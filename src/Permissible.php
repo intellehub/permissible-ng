@@ -2,24 +2,19 @@
 
 namespace Shahnewaz\PermissibleNg;
 
-use Illuminate\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Auth\Passwords\CanResetPassword;
-use Illuminate\Foundation\Auth\Access\Authorizable;
 use Shahnewaz\PermissibleNg\Traits\Permissible as PermissibleTrait;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+
 
 class Permissible extends Model implements
-    AuthenticatableContract,
-    AuthorizableContract,
-    CanResetPasswordContract,
     JWTSubject
 {
-    use PermissibleTrait, Authorizable, CanResetPassword, SoftDeletes, Authenticatable;
+    use HasFactory, Notifiable, PermissibleTrait, SoftDeletes;
 
 
     public function getJWTIdentifier()
@@ -31,5 +26,5 @@ class Permissible extends Model implements
     {
         return [];
     }
-    
+
 }
