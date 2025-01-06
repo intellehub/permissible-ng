@@ -23,7 +23,7 @@ class PermissibleService implements PermissibleAuthInterface
         return response()->json(compact('token'));
     }
 
-    public function logout(Request $request): JsonResponse 
+    public function logout(): JsonResponse
     {
         auth()->logout(true);
         return response()->json(['success' => 'Logged out.'], 200);

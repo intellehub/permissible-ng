@@ -13,7 +13,7 @@ class PermissibleUserController
         return PermissibleAuth::authenticate($request);
     }
 
-    protected function logout(Request $request) {
-        return PermissibleAuth::logout($request);
+    protected function logout() {
+        return PermissibleAuth::logout();
     }
 }
