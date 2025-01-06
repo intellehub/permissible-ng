@@ -17,14 +17,26 @@ class PermissionAccessGuard
      */
     public function handle($request, Closure $next, $permission)
     {
-        if (auth()->user()->hasPermission($permission)) {
+        $permissions = is_array($permission)
+            ? $permission
+            : explode('|', $permission);
+
+        // User must have all permissions specified.
+        $permitted = true;
+
+        foreach ($permissions as $permission) {
+            if (!auth()->user()->hasPermission($permission)) {
+                $permitted = false;
+            }
+        }
+
+        if($permitted) {
             return $next($request);
         }
+
         if($request->expectsJson()) {
             abort(401);
         }
-        $fallbackRoute = config('permissible.default_fallback_route', 'backend.dashboard');
-        return redirect()->route($fallbackRoute)
-            ->withMessage('You\'re not authorized to access the specified route/feature.');
+        return back()->withInput()->withMessage('You are not authorized to access the specified feature.');
     }
 }

@@ -30,9 +30,8 @@ class RoleAccessGuard
         if($request->expectsJson()) {
             abort(401);
         }
-        $fallbackRoute = config('permissible.default_fallback_route', 'backend.dashboard');
-        return redirect()->route($fallbackRoute)
-            ->withMessage('You\'re not authorized to access the specified route/feature.');
+
+        return back()->withInput()->withMessage('You are not authorized to access the specified route/feature.');
     }
 
     /**

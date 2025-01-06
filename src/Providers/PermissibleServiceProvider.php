@@ -50,7 +50,7 @@ class PermissibleServiceProvider extends ServiceProvider
             'role', \Shahnewaz\PermissibleNg\Http\Middleware\RoleAccessGuard::class
         );
         $this->app['router']->aliasMiddleware(
-            'permission', \Shahnewaz\PermissibleNg\Http\Middleware\PermissionAccessGuard::class
+            'permissions', \Shahnewaz\PermissibleNg\Http\Middleware\PermissionAccessGuard::class
         );
 
         // Register Permissible Service
