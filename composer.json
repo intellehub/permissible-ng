@@ -42,7 +42,7 @@
         "Shahnewaz\\PermissibleNg\\Providers\\PermissibleServiceProvider"
       ],
       "aliases": {
-        "Permissible": "Shahnewaz\\PermissibleNg\\Facades\\PermissibleFacade"
+        "PermissibleAuth": "Shahnewaz\\PermissibleNg\\Facades\\PermissibleAuth"
       }
     }
   }

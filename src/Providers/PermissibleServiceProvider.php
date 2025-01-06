@@ -2,26 +2,22 @@
 
 namespace Shahnewaz\PermissibleNg\Providers;
 
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 use Shahnewaz\PermissibleNg\Console\Commands\Setup;
+use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
+use Shahnewaz\PermissibleNg\Facades\PermissibleAuth;
 use Shahnewaz\PermissibleNg\Services\PermissibleService;
 use Shahnewaz\PermissibleNg\Console\Commands\RolePermissionSeed;
 
 
 class PermissibleServiceProvider extends ServiceProvider
 {
-    /** 
-    * This provider cannot be deferred since it loads routes.
-    * If deferred, run `php artisan route:cache`
-    **/
+
     protected $defer = false;
 
-    /**
-     * Bootstrap the application services.
-     *
-     * @return void
-     */
-    public function boot () {
+    public function boot(): void {
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -38,12 +34,8 @@ class PermissibleServiceProvider extends ServiceProvider
         $this->publish();
     }
 
-    /**
-     * Register the application services.
-     *
-     * @return void
-     */
-    public function register () {
+
+    public function register (): void {
         $this->mergeConfigFrom($this->packagePath('config/permissible.php'), 'permissible');
         // Add route middlewares
         $this->app['router']->aliasMiddleware(
@@ -53,10 +45,19 @@ class PermissibleServiceProvider extends ServiceProvider
             'permissions', \Shahnewaz\PermissibleNg\Http\Middleware\PermissionAccessGuard::class
         );
 
-        // Register Permissible Service
-        $this->app->singleton('permissible', function ($app) {
+        $this->app->bind(PermissibleAuthInterface::class, PermissibleService::class);
+
+        $this->app->bind('permissible.auth', function ($app) {
+            return $app->make(PermissibleAuthInterface::class);
+        });
+
+        // Register PermissibleAuth Service
+        $this->app->singleton(PermissibleService::class, function (Application $app) {
             return new PermissibleService;
         });
+
+        $loader = AliasLoader::getInstance();
+        $loader->alias('PermissibleAuth', PermissibleAuth::class);
     }
 
     // Root path for package files
@@ -65,8 +66,8 @@ class PermissibleServiceProvider extends ServiceProvider
     }
 
     // Facade provider
-    public function provides () {
-        return ['permissible'];
+    public function provides() {
+        return [PermissibleService::class];
     }
 
     // Class loaders for package
@@ -86,7 +87,7 @@ class PermissibleServiceProvider extends ServiceProvider
             $this->packagePath('resources/lang') => resource_path('lang/vendor/permissible'),
         ], 'permissible-translations');
         
-        // Publish Permissible Config
+        // Publish PermissibleAuth Config
         $this->publishes([
             $this->packagePath('config/permissible.php') => config_path('permissible.php'),
         ], 'permissible-config');

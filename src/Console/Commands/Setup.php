@@ -44,7 +44,7 @@ class Setup extends Command
         $this->call('jwt:secret', [
             '--no-interaction' => true,
         ]);
-        $this->info('Permissible setup complete.');
+        $this->info('PermissibleAuth setup complete.');
     }
 
     public function modifyUserModel()
@@ -68,10 +68,10 @@ class Setup extends Command
         }
 
         // Is model already using the trait?
-        $modelUsingPermissible = count(preg_grep("~Permissible~", $modelFile));
+        $modelUsingPermissible = count(preg_grep("~PermissibleAuth~", $modelFile));
 
         if ($modelUsingPermissible > 0) {
-            $this->info('Model file already using Permissible! Skipping...');
+            $this->info('Model file already using PermissibleAuth! Skipping...');
             return;
         }
 
@@ -92,12 +92,12 @@ class Setup extends Command
 
             // Modify the class definition
             $classStatement = min(array_keys(preg_grep("~^class ~", $modelFile)));
-            $modelFile[$classStatement] = 'class User extends Permissible';
+            $modelFile[$classStatement] = 'class User extends PermissibleAuth';
 
             // Write the modified file
             $files->put($modelFilePath, implode(PHP_EOL, $modelFile));
 
-            $this->info('Permissible integrated into the system.');
+            $this->info('PermissibleAuth integrated into the system.');
         } catch (\Exception $e) {
             // Restore the backup in case of any failure
             $files->copy($backupFilePath, $modelFilePath);
