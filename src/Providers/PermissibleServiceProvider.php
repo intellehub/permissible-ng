@@ -45,15 +45,12 @@ class PermissibleServiceProvider extends ServiceProvider
             'permissions', \Shahnewaz\PermissibleNg\Http\Middleware\PermissionAccessGuard::class
         );
 
-        $this->app->bind(PermissibleAuthInterface::class, PermissibleService::class);
+        // Bind the interface to the concrete implementation
+        $this->app->singleton(PermissibleAuthInterface::class, PermissibleService::class);
 
-        $this->app->bind('permissible.auth', function ($app) {
-            return $app->make(PermissibleAuthInterface::class);
-        });
-
-        // Register PermissibleAuth Service
-        $this->app->singleton(PermissibleService::class, function (Application $app) {
-            return new PermissibleService;
+        // Bind the facade accessor
+        $this->app->singleton('permissible.auth', function ($app) {
+            return $app->make(PermissibleService::class);
         });
 
         $loader = AliasLoader::getInstance();

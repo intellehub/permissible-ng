@@ -8,7 +8,7 @@ use Shahnewaz\PermissibleNg\Facades\PermissibleAuth;
 class PermissibleUserController
 {
 
-    protected function postAuthenticate(Request $request): \Illuminate\Http\JsonResponse
+    public function postAuthenticate(Request $request): \Illuminate\Http\JsonResponse
     {
         return PermissibleAuth::authenticate($request);
     }
