@@ -11,11 +11,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Shahnewaz\PermissibleNg\Traits\Permissible as PermissibleTrait;
 
 
-class Permissible extends Model implements
-    JWTSubject
+class Permissible extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable, PermissibleTrait, SoftDeletes;
-
 
     public function getJWTIdentifier()
     {
