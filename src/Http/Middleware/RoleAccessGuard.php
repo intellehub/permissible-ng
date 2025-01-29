@@ -28,7 +28,7 @@ class RoleAccessGuard
         }
 
         if($request->expectsJson()) {
-            abort(401);
+            abort(403);
         }
 
         return back()->withInput()->withMessage('You are not authorized to access the specified route/feature.');
