@@ -68,34 +68,24 @@ class Setup extends Command
         try {
             $content = $this->files->get($modelPath);
             
-            // Parse the file into sections
-            preg_match('/^(namespace[^;]+;)\s*(.*?)(\s*class\s+User\s+.*?)(\s*{[\s\S]*$)/m', $content, $matches);
-            
-            if (count($matches) !== 5) {
-                throw new \Exception('Unable to parse User model structure');
-            }
-            
-            $namespace = $matches[1];
-            $useStatements = $matches[2];
-            $classDefinition = $matches[3];
-            $classBody = $matches[4];
+            // Split content into major sections using more reliable markers
+            $parts = $this->parseFileContent($content);
             
             // Process each section
-            $useStatements = $this->processUseStatements($useStatements);
-            $classDefinition = $this->processClassDefinition($classDefinition);
-            $classBody = $this->processClassBody($classBody);
+            $useStatements = $this->processUseStatements($parts['uses']);
+            $classDefinition = $this->processClassDefinition($parts['class_definition']);
+            $classBody = $this->processClassBody($parts['class_body']);
             
             // Rebuild the file with proper formatting
             $content = "<?php\n\n" .
-                      $namespace . "\n\n" .
-                      $useStatements . "\n" .
+                      $parts['namespace'] . "\n\n" .
+                      $useStatements . "\n\n" .
                       $classDefinition . "\n" .
                       $classBody;
             
             $this->files->put($modelPath, $content);
             $this->info('User model updated successfully.');
 
-            // Ask about backup file
             if ($this->confirm('Do you want to delete the backup file?', true)) {
                 $this->files->delete($backupPath);
                 $this->info('Backup file deleted.');
@@ -112,11 +102,48 @@ class Setup extends Command
         }
     }
 
+    protected function parseFileContent(string $content): array
+    {
+        // Get namespace
+        preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatch);
+        $namespace = $namespaceMatch[0] ?? '';
+
+        // Get use statements
+        $uses = [];
+        preg_match_all('/^\s*use\s+[^;]+;/m', $content, $useMatches);
+        $uses = $useMatches[0] ?? [];
+
+        // Get class definition
+        preg_match('/class\s+User\s+extends\s+Permissible\s+implements\s+Auditable/', $content, $classMatch);
+        $classDefinition = $classMatch[0] ?? '';
+
+        // Get class body (everything between the first { and the last })
+        $startBrace = strpos($content, '{');
+        $endBrace = strrpos($content, '}');
+        $classBody = substr($content, $startBrace, $endBrace - $startBrace + 1);
+
+        if (empty($namespace) || empty($classDefinition) || empty($classBody)) {
+            throw new \Exception('Failed to parse one or more required sections of the User model');
+        }
+
+        return [
+            'namespace' => $namespace,
+            'uses' => implode("\n", $uses),
+            'class_definition' => $classDefinition,
+            'class_body' => $classBody
+        ];
+    }
+
     protected function processUseStatements(string $useStatements): string
     {
         // Get all existing use statements
-        preg_match_all('/^use [^;]+;/m', $useStatements, $matches);
+        preg_match_all('/^\s*use\s+[^;]+;/m', $useStatements, $matches);
         $existing = $matches[0] ?? [];
+        
+        // Remove the old Permissible use statement
+        $existing = array_filter($existing, function($use) {
+            return !str_contains($use, 'Shahnewaz\PermissibleNg\Permissible;');
+        });
         
         // Add required use statements
         $required = [
@@ -135,25 +162,7 @@ class Setup extends Command
 
     protected function processClassDefinition(string $classDefinition): string
     {
-        // Replace extends Permissible with extends Authenticatable
-        $classDefinition = preg_replace('/extends Permissible/', 'extends Authenticatable', $classDefinition);
-        
-        // Update implements clause
-        if (preg_match('/implements\s+([^{]+)/', $classDefinition, $matches)) {
-            $implements = array_map('trim', explode(',', $matches[1]));
-            if (!in_array('JWTSubject', $implements)) {
-                $implements[] = 'JWTSubject';
-            }
-            $classDefinition = preg_replace(
-                '/implements\s+[^{]+/',
-                'implements ' . implode(', ', array_unique($implements)),
-                $classDefinition
-            );
-        } else {
-            $classDefinition = trim($classDefinition) . ' implements JWTSubject, Auditable';
-        }
-        
-        return $classDefinition;
+        return 'class User extends Authenticatable implements JWTSubject, Auditable';
     }
 
     protected function processClassBody(string $classBody): string
@@ -163,7 +172,7 @@ class Setup extends Command
         
         // Add our traits if they don't exist
         if (!str_contains($classBody, 'use Permissible;') && !str_contains($classBody, 'use Permissible,')) {
-            $traitDefinition = "\n    use Permissible, JWTAuthentication;\n";
+            $traitDefinition = "\n    use Permissible, JWTAuthentication;";
             $classBody = substr_replace($classBody, $traitDefinition, $pos, 0);
         }
         
