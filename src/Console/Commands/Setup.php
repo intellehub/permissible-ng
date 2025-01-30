@@ -45,7 +45,9 @@ class Setup extends Command
             '--no-interaction' => true,
         ]);
         
-        $this->modifyUserModel();
+        if ($this->confirm('Do you want to modify the User model?', true)) {
+            $this->modifyUserModel();
+        }
         
         $this->info('PermissibleAuth setup complete.');
     }
@@ -59,12 +61,11 @@ class Setup extends Command
             return;
         }
 
-        $content = $this->files->get($modelPath);
-
         // Backup original file
         $this->files->copy($modelPath, $modelPath . '.backup');
 
         try {
+            $content = $this->files->get($modelPath);
             $updatedContent = $this->updateModelContent($content);
             $this->files->put($modelPath, $updatedContent);
             $this->info('User model updated successfully.');
@@ -79,53 +80,77 @@ class Setup extends Command
 
     protected function updateModelContent(string $content): string
     {
-        // Parse the existing content
-        if (!preg_match('/namespace\s+(.+?);/', $content, $namespaceMatch)) {
-            throw new \Exception('Could not find namespace declaration');
-        }
-
-        // Required use statements
-        $requiredUses = [
-            'use Illuminate\Foundation\Auth\User as Authenticatable;',
+        // Required additions
+        $newUseStatements = [
             'use Tymon\JWTAuth\Contracts\JWTSubject;',
             'use Shahnewaz\PermissibleNg\Traits\Permissible;',
             'use Shahnewaz\PermissibleNg\Traits\JWTAuthentication;'
         ];
-
-        // Get existing use statements
-        preg_match_all('/use\s+(.+?);/', $content, $useMatches);
-        $existingUses = $useMatches[0] ?? [];
         
-        // Merge existing and required use statements, removing duplicates
-        $allUses = array_unique(array_merge($existingUses, $requiredUses));
-        sort($allUses);
-
-        // Build use statements block
-        $useBlock = implode("\n", $allUses);
-
-        // Update class definition
-        $classPattern = '/(class\s+User\s+extends\s+)[^\s{]+/';
-        $content = preg_replace($classPattern, '$1Authenticatable implements JWTSubject', $content);
-
-        // Update traits
-        $traitsPattern = '/use\s+([^;{]+)(?:\s*{|\s*;)/';
-        if (preg_match($traitsPattern, $content, $traitMatch)) {
-            $existingTraits = array_map('trim', explode(',', $traitMatch[1]));
-            $requiredTraits = ['Notifiable', 'Permissible', 'JWTAuthentication'];
-            $allTraits = array_unique(array_merge($existingTraits, $requiredTraits));
-            $traitBlock = 'use ' . implode(', ', $allTraits) . ';';
-            $content = preg_replace($traitsPattern, $traitBlock, $content);
-        } else {
-            // If no traits found, add them after class definition
-            $content = preg_replace(
-                '/(class\s+User\s+extends\s+Authenticatable\s+implements\s+JWTSubject\s*{)/',
-                '$1' . PHP_EOL . '    use Notifiable, Permissible, JWTAuthentication;' . PHP_EOL,
-                $content
-            );
+        // Parse existing content
+        $lines = explode("\n", $content);
+        $useStatements = [];
+        $otherLines = [];
+        $namespace = '';
+        $inClass = false;
+        $useTraitLine = -1;
+        
+        foreach ($lines as $i => $line) {
+            $trimmedLine = trim($line);
+            
+            // Collect namespace
+            if (preg_match('/^namespace\s+(.+);/', $trimmedLine, $matches)) {
+                $namespace = $matches[1];
+                continue;
+            }
+            
+            // Collect use statements
+            if (preg_match('/^use\s+.+;$/', $trimmedLine)) {
+                $useStatements[] = $trimmedLine;
+                continue;
+            }
+            
+            // Find class definition
+            if (preg_match('/^class\s+User\s+extends\s+Authenticatable/', $trimmedLine)) {
+                $inClass = true;
+                // Update class definition to implement JWTSubject if not already implementing
+                if (!str_contains($trimmedLine, 'implements')) {
+                    $line = str_replace('Authenticatable', 'Authenticatable implements JWTSubject', $trimmedLine);
+                } elseif (!str_contains($trimmedLine, 'JWTSubject')) {
+                    $line = str_replace('implements', 'implements JWTSubject,', $trimmedLine);
+                }
+            }
+            
+            // Find use trait statement
+            if ($inClass && preg_match('/^\s*use\s+.*?;/', $trimmedLine)) {
+                $useTraitLine = $i;
+                // Extract existing traits
+                preg_match('/use\s+([^;]+)/', $trimmedLine, $matches);
+                $existingTraits = array_map('trim', explode(',', $matches[1]));
+                // Add our traits if not present
+                $newTraits = array_merge($existingTraits, ['Permissible', 'JWTAuthentication']);
+                $newTraits = array_unique($newTraits);
+                $line = '    use ' . implode(', ', $newTraits) . ';';
+            }
+            
+            $otherLines[] = $line;
         }
-
-        // Rebuild the file content
-        $parts = explode(';', $content, 2);
-        return $parts[0] . ";\n\n" . $useBlock . "\n\n" . $parts[1];
+        
+        // Add use trait statement if not found
+        if ($useTraitLine === -1) {
+            array_splice($otherLines, array_search('{', array_map('trim', $otherLines)) + 1, 0, 
+                '    use Permissible, JWTAuthentication;');
+        }
+        
+        // Merge use statements, remove duplicates
+        $useStatements = array_merge($useStatements, $newUseStatements);
+        $useStatements = array_unique($useStatements);
+        sort($useStatements);
+        
+        // Rebuild file content
+        return "<?php\n\n" . 
+               "namespace $namespace;\n\n" .
+               implode("\n", $useStatements) . "\n\n" .
+               implode("\n", $otherLines);
     }
 }
