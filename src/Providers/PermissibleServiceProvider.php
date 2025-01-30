@@ -7,7 +7,6 @@ use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Routing\Route as Router;
-use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Arr;
 use Shahnewaz\PermissibleNg\Console\Commands\Setup;
 use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
@@ -30,6 +29,10 @@ class PermissibleServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware(
             'permissions', \Shahnewaz\PermissibleNg\Http\Middleware\PermissionAccessGuard::class
         );
+
+        // Register middleware groups
+        $this->app['router']->middlewareGroup('roles', [\Shahnewaz\PermissibleNg\Http\Middleware\RoleAccessGuard::class]);
+        $this->app['router']->middlewareGroup('permissions', [\Shahnewaz\PermissibleNg\Http\Middleware\PermissionAccessGuard::class]);
 
         // Bind the interface to the concrete implementation
         $this->app->singleton(PermissibleAuthInterface::class, PermissibleService::class);
@@ -64,7 +67,7 @@ class PermissibleServiceProvider extends ServiceProvider
             return;
         }
 
-        // Register macros for Route facade
+        // Register macros for Route facade and individual Route instances
         Route::macro('roles', function ($roles = []) {
             return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
         });
@@ -73,18 +76,6 @@ class PermissibleServiceProvider extends ServiceProvider
             return $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
         });
 
-        // Register macros for RouteRegistrar (for prefix, group, etc.)
-        if (method_exists(RouteRegistrar::class, 'macro')) {
-            RouteRegistrar::macro('roles', function ($roles = []) {
-                return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
-            });
-
-            RouteRegistrar::macro('permissions', function ($permissions = []) {
-                return $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
-            });
-        }
-
-        // Register macros for individual Route instances
         Router::macro('roles', function ($roles = []) {
             /** @var Router $this */
             return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
