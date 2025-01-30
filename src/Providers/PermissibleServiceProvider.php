@@ -6,6 +6,8 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Routing\Route as Router;
+use Illuminate\Support\Arr;
 use Shahnewaz\PermissibleNg\Console\Commands\Setup;
 use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
 use Shahnewaz\PermissibleNg\Facades\PermissibleAuth;
@@ -42,8 +44,7 @@ class PermissibleServiceProvider extends ServiceProvider
 
     public function boot(): void 
     {
-        // Register route macros after middleware is registered
-        $this->registerRouteMacros();
+        $this->registerMacroHelpers();
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -56,16 +57,20 @@ class PermissibleServiceProvider extends ServiceProvider
         $this->publish();
     }
 
-    protected function registerRouteMacros(): void
+    protected function registerMacroHelpers(): void
     {
-        Route::macro('roles', function ($roles) {
-            $roles = is_array($roles) ? $roles : [$roles];
-            return $this->middleware('roles:' . implode('|', $roles));
+        if (!method_exists(Router::class, 'macro')) { // Check for Lumen
+            return;
+        }
+
+        Router::macro('roles', function ($roles = []) {
+            /** @var Router $this */
+            return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
         });
 
-        Route::macro('permissions', function ($permissions) {
-            $permissions = is_array($permissions) ? $permissions : [$permissions];
-            return $this->middleware('permissions:' . implode('|', $permissions));
+        Router::macro('permissions', function ($permissions = []) {
+            /** @var Router $this */
+            return $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
         });
     }
 
