@@ -67,8 +67,17 @@ class Setup extends Command
         try {
             $content = $this->files->get($modelPath);
             
-            // Only make necessary changes
-            $content = $this->updateModelContent($content);
+            // Remove duplicate use statements
+            $content = $this->removeDuplicateUses($content);
+            
+            // Add required use statements
+            $content = $this->addRequiredUses($content);
+            
+            // Update class definition
+            $content = $this->updateClassDefinition($content);
+            
+            // Add traits if needed
+            $content = $this->addTraits($content);
             
             $this->files->put($modelPath, $content);
             $this->info('User model updated successfully.');
@@ -81,9 +90,19 @@ class Setup extends Command
         }
     }
 
-    protected function updateModelContent(string $content): string
+    protected function removeDuplicateUses(string $content): string
     {
-        // Add required use statements if they don't exist
+        preg_match_all('/^use .+;$/m', $content, $matches);
+        if (!empty($matches[0])) {
+            $uniqueUses = array_unique($matches[0]);
+            $content = preg_replace('/^use .+;$/m', '', $content);
+            $content = preg_replace('/^(namespace.+?;)/', "$1\n\n" . implode("\n", $uniqueUses), $content);
+        }
+        return $content;
+    }
+
+    protected function addRequiredUses(string $content): string
+    {
         $requiredUses = [
             'use Illuminate\Foundation\Auth\User as Authenticatable;',
             'use Tymon\JWTAuth\Contracts\JWTSubject;',
@@ -93,39 +112,55 @@ class Setup extends Command
 
         foreach ($requiredUses as $use) {
             if (!str_contains($content, $use)) {
-                // Find the last use statement or namespace
-                preg_match_all('/^use .+;$/m', $content, $matches, PREG_OFFSET_CAPTURE);
-                if (!empty($matches[0])) {
-                    $lastUse = end($matches[0]);
-                    $position = $lastUse[1] + strlen($lastUse[0]);
-                    $content = substr_replace($content, "\n" . $use, $position, 0);
-                } else {
-                    // Add after namespace
-                    $content = preg_replace(
-                        '/(namespace .+;)/',
-                        "$1\n\n" . $use,
-                        $content
-                    );
+                preg_match('/^(namespace.+?;.*?)(?=class|$)/ms', $content, $matches);
+                if (!empty($matches[1])) {
+                    $content = str_replace($matches[1], $matches[1] . $use . "\n", $content);
                 }
             }
         }
+        return $content;
+    }
 
-        // Change extends Permissible to extends Authenticatable implements JWTSubject
+    protected function updateClassDefinition(string $content): string
+    {
+        // Replace extends Permissible with extends Authenticatable
         $content = preg_replace(
             '/extends Permissible/',
-            'extends Authenticatable implements JWTSubject',
+            'extends Authenticatable',
             $content
         );
 
-        // Add traits if they don't exist
-        if (!str_contains($content, 'use Permissible;') && !str_contains($content, 'use Permissible,')) {
+        // Update or add implements clause
+        if (preg_match('/implements\s+([^{]+)/', $content, $matches)) {
+            $implements = array_map('trim', explode(',', $matches[1]));
+            if (!in_array('JWTSubject', $implements)) {
+                $implements[] = 'JWTSubject';
+            }
             $content = preg_replace(
-                '/(class User.+{)/',
-                "$1\n    use Permissible, JWTAuthentication;",
+                '/implements\s+[^{]+/',
+                'implements ' . implode(', ', array_unique($implements)),
+                $content
+            );
+        } else {
+            $content = preg_replace(
+                '/(extends\s+Authenticatable)/',
+                '$1 implements JWTSubject, Auditable',
                 $content
             );
         }
 
+        return $content;
+    }
+
+    protected function addTraits(string $content): string
+    {
+        if (!str_contains($content, 'use Permissible;') && !str_contains($content, 'use Permissible,')) {
+            $content = preg_replace(
+                '/(class\s+User\s+[^{]+{)/',
+                "$1\n    use Permissible, JWTAuthentication;",
+                $content
+            );
+        }
         return $content;
     }
 }
