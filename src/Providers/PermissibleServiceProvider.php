@@ -7,6 +7,7 @@ use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Routing\Route as Router;
+use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Arr;
 use Shahnewaz\PermissibleNg\Console\Commands\Setup;
 use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
@@ -59,10 +60,31 @@ class PermissibleServiceProvider extends ServiceProvider
 
     protected function registerMacroHelpers(): void
     {
-        if (!method_exists(Router::class, 'macro')) { // Check for Lumen
+        if (!method_exists(Router::class, 'macro')) {
             return;
         }
 
+        // Register macros for Route facade
+        Route::macro('roles', function ($roles = []) {
+            return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
+        });
+
+        Route::macro('permissions', function ($permissions = []) {
+            return $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
+        });
+
+        // Register macros for RouteRegistrar (for prefix, group, etc.)
+        if (method_exists(RouteRegistrar::class, 'macro')) {
+            RouteRegistrar::macro('roles', function ($roles = []) {
+                return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
+            });
+
+            RouteRegistrar::macro('permissions', function ($permissions = []) {
+                return $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
+            });
+        }
+
+        // Register macros for individual Route instances
         Router::macro('roles', function ($roles = []) {
             /** @var Router $this */
             return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
