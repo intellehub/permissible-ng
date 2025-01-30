@@ -44,7 +44,7 @@ class PermissibleServiceProvider extends ServiceProvider
         
         // Add route middlewares
         $this->app['router']->aliasMiddleware(
-            'role', \Shahnewaz\PermissibleNg\Http\Middleware\RoleAccessGuard::class
+            'roles', \Shahnewaz\PermissibleNg\Http\Middleware\RoleAccessGuard::class
         );
         $this->app['router']->aliasMiddleware(
             'permissions', \Shahnewaz\PermissibleNg\Http\Middleware\PermissionAccessGuard::class

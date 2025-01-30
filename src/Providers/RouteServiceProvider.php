@@ -11,7 +11,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::macro('roles', function ($roles) {
             $roles = is_array($roles) ? $roles : [$roles];
-            return $this->middleware('role:' . implode('|', $roles));
+            return $this->middleware('roles:' . implode('|', $roles));
         });
 
         Route::macro('permissions', function ($permissions) {
