@@ -5,8 +5,7 @@ namespace Shahnewaz\PermissibleNg\Providers;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Routing\Route as Router;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Arr;
 use Shahnewaz\PermissibleNg\Console\Commands\Setup;
 use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
@@ -73,16 +72,6 @@ class PermissibleServiceProvider extends ServiceProvider
         });
 
         Route::macro('permissions', function ($permissions = []) {
-            return $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
-        });
-
-        Router::macro('roles', function ($roles = []) {
-            /** @var Router $this */
-            return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
-        });
-
-        Router::macro('permissions', function ($permissions = []) {
-            /** @var Router $this */
             return $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
         });
     }
