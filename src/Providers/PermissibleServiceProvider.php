@@ -12,40 +12,15 @@ use Shahnewaz\PermissibleNg\Facades\PermissibleAuth;
 use Shahnewaz\PermissibleNg\Services\PermissibleService;
 use Shahnewaz\PermissibleNg\Console\Commands\RolePermissionSeed;
 
-
 class PermissibleServiceProvider extends ServiceProvider
 {
-
     protected $defer = false;
 
-    public function boot(): void {
-        // Register route macros
-        Route::macro('roles', function ($roles) {
-            $roles = is_array($roles) ? $roles : [$roles];
-            return $this->middleware('roles:' . implode('|', $roles));
-        });
-
-        Route::macro('permissions', function ($permissions) {
-            $permissions = is_array($permissions) ? $permissions : [$permissions];
-            return $this->middleware('permissions:' . implode('|', $permissions));
-        });
-
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                RolePermissionSeed::class,
-                Setup::class
-            ]);
-        }
-
-        $this->load();
-        $this->publish();
-    }
-
-
-    public function register (): void {
+    public function register(): void 
+    {
         $this->mergeConfigFrom($this->packagePath('config/permissible.php'), 'permissible');
         
-        // Add route middlewares
+        // Register middleware first
         $this->app['router']->aliasMiddleware(
             'roles', \Shahnewaz\PermissibleNg\Http\Middleware\RoleAccessGuard::class
         );
@@ -65,38 +40,56 @@ class PermissibleServiceProvider extends ServiceProvider
         $loader->alias('PermissibleAuth', PermissibleAuth::class);
     }
 
-    // Root path for package files
-    private function packagePath ($path) {
-        return __DIR__."/../../$path";
+    public function boot(): void 
+    {
+        // Register route macros after middleware is registered
+        $this->registerRouteMacros();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                RolePermissionSeed::class,
+                Setup::class
+            ]);
+        }
+
+        $this->load();
+        $this->publish();
     }
 
-    // Facade provider
-    public function provides() {
-        return [PermissibleService::class];
+    protected function registerRouteMacros(): void
+    {
+        Route::macro('roles', function ($roles) {
+            $roles = is_array($roles) ? $roles : [$roles];
+            return $this->middleware('roles:' . implode('|', $roles));
+        });
+
+        Route::macro('permissions', function ($permissions) {
+            $permissions = is_array($permissions) ? $permissions : [$permissions];
+            return $this->middleware('permissions:' . implode('|', $permissions));
+        });
     }
 
-    // Class loaders for package
-    public function load () {
-        // Routes
+    private function packagePath($path): string
+    {
+        return __DIR__ . "/../../$path";
+    }
+
+    private function load(): void
+    {
         $this->loadRoutesFrom($this->packagePath('src/routes/api.php'));
-        // Migrations
         $this->loadMigrationsFrom($this->packagePath('database/migrations'));
-        // Translations
         $this->loadTranslationsFrom($this->packagePath('resources/lang'), 'permissible');
     }
 
-    // Publish required resouces from package
-    private function publish () {
-        // Publish Translations
+    private function publish(): void
+    {
         $this->publishes([
             $this->packagePath('resources/lang') => resource_path('lang/vendor/permissible'),
         ], 'permissible-translations');
         
-        // Publish PermissibleAuth Config
         $this->publishes([
             $this->packagePath('config/permissible.php') => config_path('permissible.php'),
         ], 'permissible-config');
-
 
         $this->publishes([
             $this->packagePath('config/jwt.php') => config_path('jwt.php'),
@@ -104,6 +97,11 @@ class PermissibleServiceProvider extends ServiceProvider
 
         $this->publishes([
             $this->packagePath('config/auth.php') => config_path('auth.php'),
-        ], 'permissibleconfig');
+        ], 'permissible-config');
+    }
+
+    public function provides(): array
+    {
+        return [PermissibleService::class];
     }
 }
