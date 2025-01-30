@@ -5,12 +5,12 @@ namespace Shahnewaz\PermissibleNg\Providers;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Route;
 use Shahnewaz\PermissibleNg\Console\Commands\Setup;
 use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
 use Shahnewaz\PermissibleNg\Facades\PermissibleAuth;
 use Shahnewaz\PermissibleNg\Services\PermissibleService;
 use Shahnewaz\PermissibleNg\Console\Commands\RolePermissionSeed;
-use Shahnewaz\PermissibleNg\Providers\RouteServiceProvider;
 
 
 class PermissibleServiceProvider extends ServiceProvider
@@ -19,14 +19,20 @@ class PermissibleServiceProvider extends ServiceProvider
     protected $defer = false;
 
     public function boot(): void {
+        // Register route macros
+        Route::macro('roles', function ($roles) {
+            $roles = is_array($roles) ? $roles : [$roles];
+            return $this->middleware('roles:' . implode('|', $roles));
+        });
+
+        Route::macro('permissions', function ($permissions) {
+            $permissions = is_array($permissions) ? $permissions : [$permissions];
+            return $this->middleware('permissions:' . implode('|', $permissions));
+        });
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                RolePermissionSeed::class
-            ]);
-        }
-        if ($this->app->runningInConsole()) {
-            $this->commands([
+                RolePermissionSeed::class,
                 Setup::class
             ]);
         }
@@ -38,9 +44,6 @@ class PermissibleServiceProvider extends ServiceProvider
 
     public function register (): void {
         $this->mergeConfigFrom($this->packagePath('config/permissible.php'), 'permissible');
-        
-        // Register route macros
-        $this->app->register(RouteServiceProvider::class);
         
         // Add route middlewares
         $this->app['router']->aliasMiddleware(
