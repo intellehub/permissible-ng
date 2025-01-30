@@ -14,15 +14,20 @@ return new class extends Migration
      */
     public function up()
     {
-        // Drop tables if they exist (in reverse order to handle foreign keys)
+        // Only drop our package tables, NOT the users table
         Schema::dropIfExists('role_permission');
         Schema::dropIfExists('role_user');
         Schema::dropIfExists('permissions');
         Schema::dropIfExists('roles');
 
+        // Ensure users table exists before creating our tables
+        if (!Schema::hasTable('users')) {
+            throw new \Exception('Users table must exist before running this migration.');
+        }
+
         // Create roles table first
         Schema::create('roles', function(Blueprint $table) {
-            $table->id(); // This is an alias for bigIncrements
+            $table->id();
             $table->string('name');
             $table->string('code');
             $table->integer('weight');
@@ -32,7 +37,7 @@ return new class extends Migration
 
         // Create permissions table
         Schema::create('permissions', function(Blueprint $table) {
-            $table->id(); // This is an alias for bigIncrements
+            $table->id();
             $table->string('type');
             $table->string('name');
             $table->softDeletes();
@@ -59,10 +64,10 @@ return new class extends Migration
             Schema::table('users', function (Blueprint $table) {
                 // Add first_name and last_name if they don't exist
                 if (!Schema::hasColumn('users', 'first_name')) {
-                    $table->string('first_name')->after('id');
+                    $table->string('first_name')->after('id')->nullable();
                 }
                 if (!Schema::hasColumn('users', 'last_name')) {
-                    $table->string('last_name')->after('first_name');
+                    $table->string('last_name')->after('first_name')->nullable();
                 }
                 
                 // Add soft deletes if it doesn't exist
@@ -102,7 +107,7 @@ return new class extends Migration
      */
     public function down()
     {
-        // Drop tables in reverse order
+        // Drop only our package tables, NOT the users table
         Schema::dropIfExists('role_permission');
         Schema::dropIfExists('role_user');
         Schema::dropIfExists('permissions');
@@ -122,6 +127,7 @@ return new class extends Migration
                 }
             }
 
+            // Modify users table
             Schema::table('users', function (Blueprint $table) {
                 // Drop first_name and last_name if they exist
                 if (Schema::hasColumn('users', 'first_name')) {
