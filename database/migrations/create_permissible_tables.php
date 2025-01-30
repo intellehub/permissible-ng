@@ -17,7 +17,7 @@ return new class extends Migration
         // Create roles table
         if (!Schema::hasTable('roles')) {
             Schema::create('roles', function(Blueprint $table) {
-                $table->increments('id');
+                $table->bigIncrements('id');
                 $table->string('name');
                 $table->string('code');
                 $table->integer('weight');
@@ -29,7 +29,7 @@ return new class extends Migration
         // Create permissions table
         if (!Schema::hasTable('permissions')) {
             Schema::create('permissions', function(Blueprint $table) {
-                $table->increments('id');
+                $table->bigIncrements('id');
                 $table->string('type');
                 $table->string('name');
                 $table->softDeletes();
@@ -40,8 +40,8 @@ return new class extends Migration
         // Create role_user pivot table
         if (!Schema::hasTable('role_user')) {
             Schema::create('role_user', function(Blueprint $table) {
-                $table->integer('user_id')->unsigned();
-                $table->integer('role_id')->unsigned();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('role_id');
                 $table->foreign('role_id')
                     ->references('id')
                     ->on('roles')
@@ -57,8 +57,8 @@ return new class extends Migration
         // Create role_permission pivot table
         if (!Schema::hasTable('role_permission')) {
             Schema::create('role_permission', function(Blueprint $table) {
-                $table->integer('role_id')->unsigned();
-                $table->integer('permission_id')->unsigned();
+                $table->unsignedBigInteger('role_id');
+                $table->unsignedBigInteger('permission_id');
                 $table->foreign('role_id')
                     ->references('id')
                     ->on('roles')
