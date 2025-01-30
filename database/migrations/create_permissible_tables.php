@@ -90,11 +90,17 @@ return new class extends Migration
                     $table->softDeletes();
                 }
 
-                // Add full-text search index based on database type
+                // Check for existing index before creating
                 if (config('database.default') === 'mysql') {
-                    $table->fullText(['first_name', 'last_name'], 'fullNameIndex');
+                    $indexExists = collect(DB::select("SHOW INDEX FROM users WHERE Key_name = 'fullNameIndex'"))->isNotEmpty();
+                    if (!$indexExists) {
+                        DB::statement('ALTER TABLE users ADD FULLTEXT fullNameIndex (first_name, last_name)');
+                    }
                 } elseif (config('database.default') === 'pgsql') {
-                    DB::statement("CREATE INDEX fullNameIndex ON users USING gin(to_tsvector('english', first_name || ' ' || last_name))");
+                    $indexExists = collect(DB::select("SELECT 1 FROM pg_indexes WHERE indexname = 'fullnameindex'"))->isNotEmpty();
+                    if (!$indexExists) {
+                        DB::statement("CREATE INDEX fullNameIndex ON users USING gin(to_tsvector('english', first_name || ' ' || last_name))");
+                    }
                 }
             });
         }
@@ -128,9 +134,17 @@ return new class extends Migration
                     $table->dropSoftDeletes();
                 }
                 
-                // Drop full-text search index if it exists
-                if (Schema::hasIndex('users', 'fullNameIndex')) {
-                    $table->dropIndex('fullNameIndex');
+                // Drop index if exists
+                if (config('database.default') === 'mysql') {
+                    $indexExists = collect(DB::select("SHOW INDEX FROM users WHERE Key_name = 'fullNameIndex'"))->isNotEmpty();
+                    if ($indexExists) {
+                        DB::statement('ALTER TABLE users DROP INDEX fullNameIndex');
+                    }
+                } elseif (config('database.default') === 'pgsql') {
+                    $indexExists = collect(DB::select("SELECT 1 FROM pg_indexes WHERE indexname = 'fullnameindex'"))->isNotEmpty();
+                    if ($indexExists) {
+                        DB::statement('DROP INDEX fullNameIndex');
+                    }
                 }
             });
         }
