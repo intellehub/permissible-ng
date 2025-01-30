@@ -108,9 +108,10 @@ class Setup extends Command
         preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatch);
         $namespace = $namespaceMatch[0] ?? '';
 
-        // Get use statements
-        $uses = [];
-        preg_match_all('/^\s*use\s+[^;]+;/m', $content, $useMatches);
+        // Get use statements - only those between namespace and class
+        $classPos = strpos($content, 'class User');
+        $beforeClass = substr($content, 0, $classPos);
+        preg_match_all('/^\s*use\s+[^;]+;$/m', $beforeClass, $useMatches);
         $uses = $useMatches[0] ?? [];
 
         // Get class definition
@@ -128,7 +129,7 @@ class Setup extends Command
 
         return [
             'namespace' => $namespace,
-            'uses' => implode("\n", $uses),
+            'uses' => implode("\n", array_filter($uses)), // Filter out empty lines
             'class_definition' => $classDefinition,
             'class_body' => $classBody
         ];
