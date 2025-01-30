@@ -45,7 +45,7 @@ class Setup extends Command
             '--no-interaction' => true,
         ]);
         
-        if ($this->confirm('Do you want to modify the User model to use traits instead of inheritance?', true)) {
+        if ($this->confirm('Do you want to modify the User model to use traits automatically?', true)) {
             $this->modifyUserModel();
         }
         
@@ -55,6 +55,7 @@ class Setup extends Command
     protected function modifyUserModel(): void
     {
         $modelPath = app_path('Models/User.php');
+        $backupPath = $modelPath . '.backup';
         
         if (!$this->files->exists($modelPath)) {
             $this->error('User model not found at: ' . $modelPath);
@@ -62,105 +63,110 @@ class Setup extends Command
         }
 
         // Backup original file
-        $this->files->copy($modelPath, $modelPath . '.backup');
+        $this->files->copy($modelPath, $backupPath);
 
         try {
             $content = $this->files->get($modelPath);
             
-            // Remove duplicate use statements
-            $content = $this->removeDuplicateUses($content);
+            // Parse the file into sections
+            preg_match('/^(namespace[^;]+;)\s*(.*?)(\s*class\s+User\s+.*?)(\s*{[\s\S]*$)/m', $content, $matches);
             
-            // Add required use statements
-            $content = $this->addRequiredUses($content);
+            if (count($matches) !== 5) {
+                throw new \Exception('Unable to parse User model structure');
+            }
             
-            // Update class definition
-            $content = $this->updateClassDefinition($content);
+            $namespace = $matches[1];
+            $useStatements = $matches[2];
+            $classDefinition = $matches[3];
+            $classBody = $matches[4];
             
-            // Add traits if needed
-            $content = $this->addTraits($content);
+            // Process each section
+            $useStatements = $this->processUseStatements($useStatements);
+            $classDefinition = $this->processClassDefinition($classDefinition);
+            $classBody = $this->processClassBody($classBody);
+            
+            // Rebuild the file with proper formatting
+            $content = "<?php\n\n" .
+                      $namespace . "\n\n" .
+                      $useStatements . "\n" .
+                      $classDefinition . "\n" .
+                      $classBody;
             
             $this->files->put($modelPath, $content);
             $this->info('User model updated successfully.');
+
+            // Ask about backup file
+            if ($this->confirm('Do you want to delete the backup file?', true)) {
+                $this->files->delete($backupPath);
+                $this->info('Backup file deleted.');
+            } else {
+                $this->info('Backup file kept at: ' . $backupPath);
+            }
+
         } catch (\Exception $e) {
             $this->error('Failed to update User model: ' . $e->getMessage());
-            // Restore backup
-            if ($this->files->exists($modelPath . '.backup')) {
-                $this->files->move($modelPath . '.backup', $modelPath);
+            if ($this->files->exists($backupPath)) {
+                $this->files->move($backupPath, $modelPath);
+                $this->info('Original file restored from backup.');
             }
         }
     }
 
-    protected function removeDuplicateUses(string $content): string
+    protected function processUseStatements(string $useStatements): string
     {
-        preg_match_all('/^use .+;$/m', $content, $matches);
-        if (!empty($matches[0])) {
-            $uniqueUses = array_unique($matches[0]);
-            $content = preg_replace('/^use .+;$/m', '', $content);
-            $content = preg_replace('/^(namespace.+?;)/', "$1\n\n" . implode("\n", $uniqueUses), $content);
-        }
-        return $content;
-    }
-
-    protected function addRequiredUses(string $content): string
-    {
-        $requiredUses = [
+        // Get all existing use statements
+        preg_match_all('/^use [^;]+;/m', $useStatements, $matches);
+        $existing = $matches[0] ?? [];
+        
+        // Add required use statements
+        $required = [
             'use Illuminate\Foundation\Auth\User as Authenticatable;',
             'use Tymon\JWTAuth\Contracts\JWTSubject;',
             'use Shahnewaz\PermissibleNg\Traits\Permissible;',
             'use Shahnewaz\PermissibleNg\Traits\JWTAuthentication;'
         ];
-
-        foreach ($requiredUses as $use) {
-            if (!str_contains($content, $use)) {
-                preg_match('/^(namespace.+?;.*?)(?=class|$)/ms', $content, $matches);
-                if (!empty($matches[1])) {
-                    $content = str_replace($matches[1], $matches[1] . $use . "\n", $content);
-                }
-            }
-        }
-        return $content;
+        
+        // Merge and remove duplicates
+        $allUses = array_unique(array_merge($existing, $required));
+        sort($allUses);
+        
+        return implode("\n", $allUses);
     }
 
-    protected function updateClassDefinition(string $content): string
+    protected function processClassDefinition(string $classDefinition): string
     {
         // Replace extends Permissible with extends Authenticatable
-        $content = preg_replace(
-            '/extends Permissible/',
-            'extends Authenticatable',
-            $content
-        );
-
-        // Update or add implements clause
-        if (preg_match('/implements\s+([^{]+)/', $content, $matches)) {
+        $classDefinition = preg_replace('/extends Permissible/', 'extends Authenticatable', $classDefinition);
+        
+        // Update implements clause
+        if (preg_match('/implements\s+([^{]+)/', $classDefinition, $matches)) {
             $implements = array_map('trim', explode(',', $matches[1]));
             if (!in_array('JWTSubject', $implements)) {
                 $implements[] = 'JWTSubject';
             }
-            $content = preg_replace(
+            $classDefinition = preg_replace(
                 '/implements\s+[^{]+/',
                 'implements ' . implode(', ', array_unique($implements)),
-                $content
+                $classDefinition
             );
         } else {
-            $content = preg_replace(
-                '/(extends\s+Authenticatable)/',
-                '$1 implements JWTSubject, Auditable',
-                $content
-            );
+            $classDefinition = trim($classDefinition) . ' implements JWTSubject, Auditable';
         }
-
-        return $content;
+        
+        return $classDefinition;
     }
 
-    protected function addTraits(string $content): string
+    protected function processClassBody(string $classBody): string
     {
-        if (!str_contains($content, 'use Permissible;') && !str_contains($content, 'use Permissible,')) {
-            $content = preg_replace(
-                '/(class\s+User\s+[^{]+{)/',
-                "$1\n    use Permissible, JWTAuthentication;",
-                $content
-            );
+        // Find the position after the opening brace
+        $pos = strpos($classBody, '{') + 1;
+        
+        // Add our traits if they don't exist
+        if (!str_contains($classBody, 'use Permissible;') && !str_contains($classBody, 'use Permissible,')) {
+            $traitDefinition = "\n    use Permissible, JWTAuthentication;\n";
+            $classBody = substr_replace($classBody, $traitDefinition, $pos, 0);
         }
-        return $content;
+        
+        return $classBody;
     }
 }
