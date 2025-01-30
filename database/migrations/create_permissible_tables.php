@@ -14,62 +14,44 @@ return new class extends Migration
      */
     public function up()
     {
-        // Create roles table
-        if (!Schema::hasTable('roles')) {
-            Schema::create('roles', function(Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->string('name');
-                $table->string('code');
-                $table->integer('weight');
-                $table->softDeletes();
-                $table->index('weight');
-            });
-        }
+        // Drop tables if they exist (in reverse order to handle foreign keys)
+        Schema::dropIfExists('role_permission');
+        Schema::dropIfExists('role_user');
+        Schema::dropIfExists('permissions');
+        Schema::dropIfExists('roles');
+
+        // Create roles table first
+        Schema::create('roles', function(Blueprint $table) {
+            $table->id(); // This is an alias for bigIncrements
+            $table->string('name');
+            $table->string('code');
+            $table->integer('weight');
+            $table->softDeletes();
+            $table->index('weight');
+        });
 
         // Create permissions table
-        if (!Schema::hasTable('permissions')) {
-            Schema::create('permissions', function(Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->string('type');
-                $table->string('name');
-                $table->softDeletes();
-                $table->index(['type', 'name']);
-            });
-        }
+        Schema::create('permissions', function(Blueprint $table) {
+            $table->id(); // This is an alias for bigIncrements
+            $table->string('type');
+            $table->string('name');
+            $table->softDeletes();
+            $table->index(['type', 'name']);
+        });
 
         // Create role_user pivot table
-        if (!Schema::hasTable('role_user')) {
-            Schema::create('role_user', function(Blueprint $table) {
-                $table->unsignedBigInteger('user_id');
-                $table->unsignedBigInteger('role_id');
-                $table->foreign('role_id')
-                    ->references('id')
-                    ->on('roles')
-                    ->onDelete('cascade');
-                $table->foreign('user_id')
-                    ->references('id')
-                    ->on('users')
-                    ->onDelete('cascade');
-                $table->primary(['user_id', 'role_id']);
-            });
-        }
+        Schema::create('role_user', function(Blueprint $table) {
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('role_id')->constrained()->onDelete('cascade');
+            $table->primary(['user_id', 'role_id']);
+        });
 
         // Create role_permission pivot table
-        if (!Schema::hasTable('role_permission')) {
-            Schema::create('role_permission', function(Blueprint $table) {
-                $table->unsignedBigInteger('role_id');
-                $table->unsignedBigInteger('permission_id');
-                $table->foreign('role_id')
-                    ->references('id')
-                    ->on('roles')
-                    ->onDelete('cascade');
-                $table->foreign('permission_id')
-                    ->references('id')
-                    ->on('permissions')
-                    ->onDelete('cascade');
-                $table->primary(['role_id', 'permission_id']);
-            });
-        }
+        Schema::create('role_permission', function(Blueprint $table) {
+            $table->foreignId('role_id')->constrained()->onDelete('cascade');
+            $table->foreignId('permission_id')->constrained('permissions')->onDelete('cascade');
+            $table->primary(['role_id', 'permission_id']);
+        });
 
         // Modify users table if configured
         if (config('permissible.first_last_name_migration', false)) {
@@ -113,7 +95,7 @@ return new class extends Migration
      */
     public function down()
     {
-        // Drop the tables in reverse order to handle foreign key constraints
+        // Drop tables in reverse order
         Schema::dropIfExists('role_permission');
         Schema::dropIfExists('role_user');
         Schema::dropIfExists('permissions');
@@ -134,7 +116,6 @@ return new class extends Migration
                     $table->dropSoftDeletes();
                 }
                 
-                // Drop index if exists
                 if (config('database.default') === 'mysql') {
                     $indexExists = collect(DB::select("SHOW INDEX FROM users WHERE Key_name = 'fullNameIndex'"))->isNotEmpty();
                     if ($indexExists) {
