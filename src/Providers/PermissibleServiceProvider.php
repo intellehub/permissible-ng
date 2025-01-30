@@ -62,7 +62,7 @@ class PermissibleServiceProvider extends ServiceProvider
 
     protected function registerMacroHelpers(): void
     {
-        if (!method_exists(Router::class, 'macro')) {
+        if (!method_exists(Route::class, 'macro')) {
             return;
         }
 
