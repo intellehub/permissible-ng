@@ -14,16 +14,11 @@ return new class extends Migration
      */
     public function up()
     {
-        // Only drop our package tables, NOT the users table
+        // Only drop our package tables
         Schema::dropIfExists('role_permission');
         Schema::dropIfExists('role_user');
         Schema::dropIfExists('permissions');
         Schema::dropIfExists('roles');
-
-        // Ensure users table exists before creating our tables
-        if (!Schema::hasTable('users')) {
-            throw new \Exception('Users table must exist before running this migration.');
-        }
 
         // Create roles table first
         Schema::create('roles', function(Blueprint $table) {
@@ -44,33 +39,34 @@ return new class extends Migration
             $table->index(['type', 'name']);
         });
 
-        // Create role_user pivot table
+        // Create role_user pivot table without foreign key constraints
         Schema::create('role_user', function(Blueprint $table) {
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('role_id');
             $table->primary(['user_id', 'role_id']);
+            $table->index('user_id');
+            $table->index('role_id');
         });
 
-        // Create role_permission pivot table
+        // Create role_permission pivot table without foreign key constraints
         Schema::create('role_permission', function(Blueprint $table) {
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->foreignId('permission_id')->constrained('permissions')->onDelete('cascade');
+            $table->unsignedBigInteger('role_id');
+            $table->unsignedBigInteger('permission_id');
             $table->primary(['role_id', 'permission_id']);
+            $table->index('role_id');
+            $table->index('permission_id');
         });
 
         // Modify users table if configured
         if (config('permissible.first_last_name_migration', false)) {
             // First, add the new columns
             Schema::table('users', function (Blueprint $table) {
-                // Add first_name and last_name if they don't exist
                 if (!Schema::hasColumn('users', 'first_name')) {
                     $table->string('first_name')->after('id')->nullable();
                 }
                 if (!Schema::hasColumn('users', 'last_name')) {
                     $table->string('last_name')->after('first_name')->nullable();
                 }
-                
-                // Add soft deletes if it doesn't exist
                 if (!Schema::hasColumn('users', 'deleted_at')) {
                     $table->softDeletes();
                 }
@@ -107,7 +103,7 @@ return new class extends Migration
      */
     public function down()
     {
-        // Drop only our package tables, NOT the users table
+        // Drop only our package tables
         Schema::dropIfExists('role_permission');
         Schema::dropIfExists('role_user');
         Schema::dropIfExists('permissions');
@@ -127,22 +123,16 @@ return new class extends Migration
                 }
             }
 
-            // Modify users table
             Schema::table('users', function (Blueprint $table) {
-                // Drop first_name and last_name if they exist
                 if (Schema::hasColumn('users', 'first_name')) {
                     $table->dropColumn('first_name');
                 }
                 if (Schema::hasColumn('users', 'last_name')) {
                     $table->dropColumn('last_name');
                 }
-                
-                // Add back name column if it doesn't exist
                 if (!Schema::hasColumn('users', 'name')) {
                     $table->string('name')->after('id');
                 }
-                
-                // Drop soft deletes if it exists
                 if (Schema::hasColumn('users', 'deleted_at')) {
                     $table->dropSoftDeletes();
                 }
