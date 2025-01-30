@@ -4,6 +4,8 @@ namespace Shahnewaz\PermissibleNg\Database\Seeder;
 
 use Shahnewaz\PermissibleNg\Role;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Shahnewaz\PermissibleNg\Permission;
 
 class RolePermissionSeeder extends Seeder
@@ -15,68 +17,96 @@ class RolePermissionSeeder extends Seeder
      */
     public function run()
     {
+        // Use transactions for atomicity
+        DB::beginTransaction();
 
-        Role::truncate();
-
-        // Create major roles
-        Role::firstOrcreate(['name' => 'Super User'], ['code' => 'su', 'weight' => 0]);
-        Role::firstOrcreate(['name' => 'Admin'], ['code' => 'admin', 'weight' => 1]);
-        Role::firstOrcreate(['name' => 'User'], ['code' => 'user', 'weight' => 999]);
-
-        // Create permissions
-        Permission::truncate();
-        $permissions = [
-            "users.list" => [
-                'Super User',
-                'Admin',
-                'Staff'
-            ],
-            "users.create" => [
-                'Super User',
-            ],
-            "users.edit" => [
-                'Super User',
-            ],
-            "users.delete" => [
-                'Super User',
-            ],
-            "roles.list" => [
-                'Super User'
-            ],
-            "roles.create" => [
-                'Super User'
-            ],
-            "roles.edit" => [
-                'Super User'
-            ],
-            "roles.delete" => [
-                'Super User'
-            ],
-        ];
-
-        foreach ($permissions as $permission => $roleName) {
-            $permissionObject = Permission::createPermission($permission);
-            $rolesIds = Role::whereIn('name', $roleName)->pluck('id')->toArray();
-            $permissionObject->roles()->sync($rolesIds);
-        }
-
-        if (config('permissible.first_last_name_migration', false) === true) {
-            $fillables = [
-                'first_name' => 'Super',
-                'last_name' => 'User',
-                'password' => 'super_user'
+        try {
+            // Create major roles without truncating
+            $roles = [
+                ['name' => 'Super User', 'code' => 'su', 'weight' => 0],
+                ['name' => 'Admin', 'code' => 'admin', 'weight' => 1],
+                ['name' => 'User', 'code' => 'user', 'weight' => 999],
             ];
-        } else {
-            $fillables = [
-                'password' => 'super_user'
+
+            foreach ($roles as $role) {
+                Role::firstOrCreate(
+                    ['code' => $role['code']], // Unique identifier
+                    $role
+                );
+            }
+
+            // Define permissions with their roles
+            $permissions = [
+                "users.list" => [
+                    'Super User',
+                    'Admin',
+                    'Staff'
+                ],
+                "users.create" => [
+                    'Super User',
+                ],
+                "users.edit" => [
+                    'Super User',
+                ],
+                "users.delete" => [
+                    'Super User',
+                ],
+                "roles.list" => [
+                    'Super User'
+                ],
+                "roles.create" => [
+                    'Super User'
+                ],
+                "roles.edit" => [
+                    'Super User'
+                ],
+                "roles.delete" => [
+                    'Super User'
+                ],
             ];
+
+            // Create permissions and assign to roles without truncating
+            foreach ($permissions as $permissionName => $roleNames) {
+                $permission = Permission::firstOrCreate(
+                    Permission::getPermissionParts($permissionName)
+                );
+
+                // Get role IDs, filtering out non-existent roles
+                $roleIds = Role::whereIn('name', $roleNames)->pluck('id')->toArray();
+                
+                // Sync without detaching to preserve existing relationships
+                $permission->roles()->syncWithoutDetaching($roleIds);
+            }
+
+            // Create super user if doesn't exist
+            $userFields = [
+                'email' => 'super_user@app.dev',
+                'password' => Hash::make('super_user'), // Hash password
+            ];
+
+            if (config('permissible.first_last_name_migration', false)) {
+                $userFields['first_name'] = 'Super';
+                $userFields['last_name'] = 'User';
+            } else {
+                $userFields['name'] = 'Super User';
+            }
+
+            $su = \App\Models\User::firstOrCreate(
+                ['email' => $userFields['email']],
+                $userFields
+            );
+
+            // Attach super user role without detaching other roles
+            $suRole = Role::where('code', 'su')->first();
+            if ($suRole) {
+                $su->roles()->syncWithoutDetaching([$suRole->id]);
+            }
+
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        $su = \App\Models\User::firstOrCreate(
-            ['email' => 'super_user@app.dev'],
-            $fillables
-        );
-
-        $su->roles()->sync([1]);
     }
 }
