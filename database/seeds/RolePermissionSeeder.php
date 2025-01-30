@@ -1,4 +1,5 @@
 <?php
+
 namespace Shahnewaz\PermissibleNg\Database\Seeder;
 
 use Shahnewaz\PermissibleNg\Role;
@@ -16,33 +17,40 @@ class RolePermissionSeeder extends Seeder
     {
 
         Role::truncate();
-        
+
         // Create major roles
-        Role::firstOrcreate(['name' => 'Super User'], ['code' => 'su', 'weight' => 1]);
-        Role::firstOrcreate(['name' => 'Admin'], ['code' => 'admin', 'weight' => 2]);
-        Role::firstOrcreate(['name' => 'Staff'], ['code' => 'staff', 'weight' => 3]);
+        Role::firstOrcreate(['name' => 'Super User'], ['code' => 'su', 'weight' => 0]);
+        Role::firstOrcreate(['name' => 'Admin'], ['code' => 'admin', 'weight' => 1]);
+        Role::firstOrcreate(['name' => 'User'], ['code' => 'user', 'weight' => 999]);
 
         // Create permissions
         Permission::truncate();
-         $permissions = [
-            "admin.access" => [
+        $permissions = [
+            "users.list" => [
                 'Super User',
                 'Admin',
                 'Staff'
             ],
-            "admins.manage" => [
+            "users.create" => [
                 'Super User',
             ],
-            "admins.create" => [
+            "users.edit" => [
                 'Super User',
             ],
-            "acl.manage" => [
+            "users.delete" => [
                 'Super User',
-                'Admin'
             ],
-            "acl.set" => [
-                'Super User',
-                'Admin'
+            "roles.list" => [
+                'Super User'
+            ],
+            "roles.create" => [
+                'Super User'
+            ],
+            "roles.edit" => [
+                'Super User'
+            ],
+            "roles.delete" => [
+                'Super User'
             ],
         ];
 
@@ -61,11 +69,11 @@ class RolePermissionSeeder extends Seeder
         } else {
             $fillables = [
                 'password' => 'super_user'
-            ]; 
+            ];
         }
 
         $su = \App\Models\User::firstOrCreate(
-            [ 'email' => 'super_user@app.dev' ],
+            ['email' => 'super_user@app.dev'],
             $fillables
         );
 

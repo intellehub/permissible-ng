@@ -37,6 +37,6 @@ return [
     'new' => 'New',
     'users' => 'Users',
     'manage_users' => 'Manager Users',
-    'lowest_strength_explanation' => '*10 is the lowest strength',
+    'lowest_strength_explanation' => '*0 is the highet strength',
     'lowest_strength_tooltip' => 'Sets Role strength and hierachy. If an action is permitted for Role with weight of 10, then other roles having same or lower weight will automatically inherit that permission. Can be turned off in permissible settings.',
 ];

@@ -21,22 +21,22 @@ class PermissionAccessGuard
             ? $permission
             : explode('|', $permission);
 
-        // User must have all permissions specified.
-        $permitted = true;
-
-        foreach ($permissions as $permission) {
-            if (!auth()->user()->hasPermission($permission)) {
-                $permitted = false;
-            }
+        // More efficient permission checking
+        $user = auth()->user();
+        if (!$user) {
+            return $this->handleUnauthorized($request);
         }
 
-        if($permitted) {
-            return $next($request);
+        if (!collect($permissions)->every(fn($perm) => $user->hasPermission($perm))) {
+            return $this->handleUnauthorized($request);
         }
 
-        if($request->expectsJson()) {
-            abort(403);
-        }
-        return back()->withInput()->withMessage('You are not authorized to access the specified feature.');
+        return $next($request);
+    }
+
+    private function handleUnauthorized($request) {
+        return $request->expectsJson()
+            ? response()->json(['message' => 'Unauthorized'], 403)
+            : back()->withInput()->withMessage('You are not authorized to access the specified feature.');
     }
 }

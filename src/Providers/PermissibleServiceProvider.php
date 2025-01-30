@@ -10,6 +10,7 @@ use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
 use Shahnewaz\PermissibleNg\Facades\PermissibleAuth;
 use Shahnewaz\PermissibleNg\Services\PermissibleService;
 use Shahnewaz\PermissibleNg\Console\Commands\RolePermissionSeed;
+use Shahnewaz\PermissibleNg\Providers\RouteServiceProvider;
 
 
 class PermissibleServiceProvider extends ServiceProvider
@@ -37,6 +38,10 @@ class PermissibleServiceProvider extends ServiceProvider
 
     public function register (): void {
         $this->mergeConfigFrom($this->packagePath('config/permissible.php'), 'permissible');
+        
+        // Register route macros
+        $this->app->register(RouteServiceProvider::class);
+        
         // Add route middlewares
         $this->app['router']->aliasMiddleware(
             'role', \Shahnewaz\PermissibleNg\Http\Middleware\RoleAccessGuard::class
@@ -89,20 +94,13 @@ class PermissibleServiceProvider extends ServiceProvider
             $this->packagePath('config/permissible.php') => config_path('permissible.php'),
         ], 'permissible-config');
 
-        $this->publishes([
-            $this->packagePath('config/jwt.php') => config_path('jwt.php'),
-        ], 'permissible-jwt-config');
-
-        $this->publishes([
-            $this->packagePath('config/auth.php') => config_path('auth.php'),
-        ], 'permissible-auth-config');
 
         $this->publishes([
             $this->packagePath('config/jwt.php') => config_path('jwt.php'),
-        ], 'config');
+        ], 'permissible-config');
 
         $this->publishes([
             $this->packagePath('config/auth.php') => config_path('auth.php'),
-        ], 'config');
+        ], 'permissibleconfig');
     }
 }

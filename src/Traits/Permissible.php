@@ -4,6 +4,11 @@ namespace Shahnewaz\PermissibleNg\Traits;
 
 use Shahnewaz\PermissibleNg\Role;
 
+/**
+ * Trait Permissible
+ * 
+ * @package Shahnewaz\PermissibleNg\Traits
+ */
 trait Permissible {
 
     public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany {
@@ -24,16 +29,51 @@ trait Permissible {
         return false;
     }
 
-    public function getPermissionsAttribute (): array
+    public function getPermissionsAttribute(): array {
+        // Cache permissions to avoid repeated calculations
+        return cache()->remember("user.{$this->id}.permissions", 3600, function() {
+            return $this->roles()
+                ->with('permissions')
+                ->get()
+                ->flatMap(function($role) {
+                    return $role->permissions->map(fn($permission) => 
+                        $permission->type . '.' . $permission->name
+                    );
+                })
+                ->unique()
+                ->values()
+                ->all();
+        });
+    }
+
+    // Add method to clear permissions cache
+    public function clearPermissionsCache(): void {
+        cache()->forget("user.{$this->id}.permissions");
+    }
+
+    /**
+     * Bulk check multiple permissions
+     * 
+     * @param array $permissions
+     * @param bool $requireAll
+     * @return bool
+     */
+    public function hasPermissions(array $permissions, bool $requireAll = true): bool
     {
-        $permissions = [];
-        foreach ($this->roles as $role) {
-            $rolePermissions = [];
-            foreach ($role->permissions as $permission) {
-                $rolePermissions[] = $permission->type.'.'.$permission->name;
-            }
-            $permissions = array_merge($permissions, $rolePermissions);
-        }
-        return $permissions;
+        $callback = fn($permission) => $this->hasPermission($permission);
+        return $requireAll 
+            ? collect($permissions)->every($callback)
+            : collect($permissions)->some($callback);
+    }
+
+    /**
+     * Check if user has any permission of a specific type
+     * 
+     * @param string $type
+     * @return bool
+     */
+    public function hasPermissionType($type): bool
+    {
+        return $this->hasPermission("$type.*");
     }
 }
