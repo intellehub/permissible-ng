@@ -6,7 +6,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Routing\Route;
-use Shahnewaz\PermissibleNg\Routing\RouteRegistrar;
+use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Arr;
 use Shahnewaz\PermissibleNg\Console\Commands\Setup;
 use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
@@ -21,10 +21,6 @@ class PermissibleServiceProvider extends ServiceProvider
     public function register(): void 
     {
         $this->mergeConfigFrom($this->packagePath('config/permissible.php'), 'permissible');
-     
-        $this->app->extend(Router::class, function ($router, $app) {
-            return new RouteRegistrar($router);
-        });
         
         // Register middleware first
         $this->app['router']->aliasMiddleware(
@@ -82,15 +78,20 @@ class PermissibleServiceProvider extends ServiceProvider
             return $this;
         });
 
-        // Register macros for RouteRegistrar
-        RouteRegistrar::macro('roles', function ($roles = []) {
-            $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
-            return $this;
-        });
+        $this->app->extend(RouteRegistrar::class, function ($routeRegistrar, $app) {
+            // Add roles method
+            $routeRegistrar->roles = function ($roles = []) {
+                $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
+                return $this;
+            };
 
-        RouteRegistrar::macro('permissions', function ($permissions = []) {
-            $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
-            return $this;
+            // Add permissions method
+            $routeRegistrar->permissions = function ($permissions = []) {
+                $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
+                return $this;
+            };
+
+            return $routeRegistrar;
         });
 
     }
