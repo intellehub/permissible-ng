@@ -68,11 +68,13 @@ class PermissibleServiceProvider extends ServiceProvider
 
         // Register macros for Route facade and individual Route instances
         Route::macro('roles', function ($roles = []) {
-            return $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
+            $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
+            return $this;
         });
 
         Route::macro('permissions', function ($permissions = []) {
-            return $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
+            $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
+            return $this;
         });
     }
 
