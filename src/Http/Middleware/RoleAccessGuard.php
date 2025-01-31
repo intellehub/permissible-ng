@@ -38,23 +38,22 @@ class RoleAccessGuard
      * Check if user has that role
      * */
     private function checkRole($roles, $requiredRole): bool {
-        $requiredRoleObject = cache()->remember(
-            "role.{$requiredRole}", 
-            3600, 
-            fn() => Role::where('code', $requiredRole)
-                        ->orWhere('name', $requiredRole)
-                        ->first()
-        );
+        $requiredRoleObject = Role::getCachedRole($requiredRole);
 
         if (!$requiredRoleObject) {
             return false;
         }
 
-        $hierarchyEnabled = config('permissible.hierarchy', true);
+        $hierarchyEnabled = config('permissible.hierarchy', false);
         return $roles->contains(function($role) use($requiredRoleObject, $hierarchyEnabled) {
-            return $role->code === $requiredRoleObject->code ||
-                   $role->name === $requiredRoleObject->name ||
-                   ($hierarchyEnabled && $role->weight <= $requiredRoleObject->weight);
+            // Exact role match
+            if ($role->code === $requiredRoleObject->code || 
+                $role->name === $requiredRoleObject->name) {
+                return true;
+            }
+            
+            // Weight-based hierarchy check only if enabled
+            return $hierarchyEnabled && $role->weight <= $requiredRoleObject->weight;
         });
     }
 }

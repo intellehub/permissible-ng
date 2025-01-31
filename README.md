@@ -43,6 +43,7 @@ class User extends Authenticatable
     // ... rest of your User model
 }
 ```
+Note: This can be done using the `permissible:setup` command automatically.
 
 ### Managing Roles and Permissions
 
@@ -96,7 +97,16 @@ Route::get('/users/create', [UserController::class, 'create'])
     ->permissions(['users.create']);
 ```
 
+### Route Group Protection
+
+```php
+Route::group(['middleware' => ['roles:su,admin']], function () {
+    Route::get('/admin/dashboard', [DashboardController::class, 'index']);
+});
+```
+
 ### Role Hierarchy
+(Needs to be enabled in the config file).
 
 Roles have weights - lower weight means higher privilege. For example:
 

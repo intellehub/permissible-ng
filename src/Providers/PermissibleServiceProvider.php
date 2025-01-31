@@ -6,7 +6,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Routing\Route;
-use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Arr;
 use Shahnewaz\PermissibleNg\Console\Commands\Setup;
 use Shahnewaz\PermissibleNg\Contracts\PermissibleAuthInterface;
@@ -77,23 +76,6 @@ class PermissibleServiceProvider extends ServiceProvider
             $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
             return $this;
         });
-
-        $this->app->extend(RouteRegistrar::class, function ($routeRegistrar, $app) {
-            // Add roles method
-            $routeRegistrar->roles = function ($roles = []) {
-                $this->middleware('roles:' . implode('|', Arr::wrap($roles)));
-                return $this;
-            };
-
-            // Add permissions method
-            $routeRegistrar->permissions = function ($permissions = []) {
-                $this->middleware('permissions:' . implode('|', Arr::wrap($permissions)));
-                return $this;
-            };
-
-            return $routeRegistrar;
-        });
-
     }
 
     private function packagePath($path): string

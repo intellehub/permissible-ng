@@ -1,4 +1,5 @@
 <?php
 	return [
-		'enable_routes' => true
+		'first_last_name_migration' => true,
+		'hierarchy' => false,
 	];
