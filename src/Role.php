@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property string $name
  * @property string $code
- * @property int $weight
  * @property-read \Illuminate\Database\Eloquent\Collection|User[] $users
  * @property-read \Illuminate\Database\Eloquent\Collection|Permission[] $permissions
  */

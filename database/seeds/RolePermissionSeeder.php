@@ -21,7 +21,7 @@ class RolePermissionSeeder extends Seeder
         DB::beginTransaction();
 
         try {
-            // Create major roles without weight
+            // Create major roles
             $roles = [
                 ['name' => 'Super User', 'code' => 'su'],
                 ['name' => 'Admin', 'code' => 'admin'],

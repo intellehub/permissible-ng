@@ -21,22 +21,6 @@ trait Permissible {
     }
 
     public function hasPermission($permission, $arguments = []): bool {
-        $hierarchyEnabled = config('permissible.hierarchy', false);
-        
-        if ($hierarchyEnabled) {
-            // Get the minimum weight (highest privilege) among user's roles
-            $minWeight = $this->roles()->min('weight');
-            
-            // Check permissions in roles with weight >= minWeight
-            return $this->roles()
-                ->where('weight', '>=', $minWeight)
-                ->get()
-                ->contains(function($role) use ($permission) {
-                    return $role->hasPermission($permission);
-                });
-        }
-        
-        // Default behavior without hierarchy
         foreach($this->roles as $role) {
             if($role->hasPermission($permission)) {
                 return true;

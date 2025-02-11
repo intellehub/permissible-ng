@@ -26,7 +26,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('code')->unique();
             $table->softDeletes();
-            $table->index('weight');
         });
 
         // Create permissions table
