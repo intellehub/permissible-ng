@@ -26,7 +26,7 @@ class Role extends Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'code', 'weight'];
+    protected $fillable = ['name', 'code'];
 
     /**
      * Timestamps flag (false will disable timestamps)
@@ -41,27 +41,6 @@ class Role extends Model
     protected static function boot()
     {
         parent::boot();
-        
-        static::saving(function ($role) {
-            static::validateWeight($role);
-        });
-    }
-
-    /**
-     * Validate that the weight is unique
-     * 
-     * @param Role $role
-     * @throws \InvalidArgumentException
-     */
-    protected static function validateWeight($role)
-    {
-        $exists = static::where('weight', $role->weight)
-            ->where('id', '!=', $role->id)
-            ->exists();
-        
-        if ($exists) {
-            throw new \InvalidArgumentException("Role weight {$role->weight} is already in use.");
-        }
     }
 
     /**

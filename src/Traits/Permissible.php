@@ -92,4 +92,16 @@ trait Permissible {
     {
         return $this->hasPermission("$type.*");
     }
+
+
+    /**
+     * Check if user has all specified roles
+     * 
+     * @param array $roles Array of role codes or names
+     * @return bool
+     */
+    public function hasRoles(array $roles): bool
+    {
+        return collect($roles)->every(fn($role) => $this->hasRole($role));
+    }
 }

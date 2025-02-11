@@ -21,16 +21,16 @@ class RolePermissionSeeder extends Seeder
         DB::beginTransaction();
 
         try {
-            // Create major roles without truncating
+            // Create major roles without weight
             $roles = [
-                ['name' => 'Super User', 'code' => 'su', 'weight' => 0],
-                ['name' => 'Admin', 'code' => 'admin', 'weight' => 1],
-                ['name' => 'User', 'code' => 'user', 'weight' => 999],
+                ['name' => 'Super User', 'code' => 'su'],
+                ['name' => 'Admin', 'code' => 'admin'],
+                ['name' => 'User', 'code' => 'user'],
             ];
 
             foreach ($roles as $role) {
                 Role::firstOrCreate(
-                    ['code' => $role['code']], // Unique identifier
+                    ['code' => $role['code']], 
                     $role
                 );
             }

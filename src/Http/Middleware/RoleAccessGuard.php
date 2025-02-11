@@ -3,12 +3,9 @@
 namespace Shahnewaz\PermissibleNg\Http\Middleware;
 
 use Closure;
-use Shahnewaz\PermissibleNg\Role;
-use Shahnewaz\PermissibleNg\Exceptions\FeatureNotAllowedException;
 
 class RoleAccessGuard
 {
-
     /**
      * Handle an incoming request.
      *
@@ -19,41 +16,25 @@ class RoleAccessGuard
      */
     public function handle($request, Closure $next, $role)
     {
+        $roles = is_array($role)
+            ? $role
+            : explode('|', $role);
 
-        $userRoles = auth()->user()->roles()->orderBy('weight', 'asc')->get();
-        $passed = $this->checkRole($userRoles, $role);
-        
-        if ($passed) {
-            return $next($request);
+        $user = auth()->user();
+        if (!$user) {
+            return $this->handleUnauthorized($request);
         }
 
-        if($request->expectsJson()) {
-            abort(403);
+        if (!collect($roles)->every(fn($r) => $user->hasRole($r))) {
+            return $this->handleUnauthorized($request);
         }
 
-        return back()->withInput()->withMessage('You are not authorized to access the specified route/feature.');
+        return $next($request);
     }
 
-    /**
-     * Check if user has that role
-     * */
-    private function checkRole($roles, $requiredRole): bool {
-        $requiredRoleObject = Role::getCachedRole($requiredRole);
-
-        if (!$requiredRoleObject) {
-            return false;
-        }
-
-        $hierarchyEnabled = config('permissible.hierarchy', false);
-        return $roles->contains(function($role) use($requiredRoleObject, $hierarchyEnabled) {
-            // Exact role match
-            if ($role->code === $requiredRoleObject->code || 
-                $role->name === $requiredRoleObject->name) {
-                return true;
-            }
-            
-            // Weight-based hierarchy check only if enabled
-            return $hierarchyEnabled && $role->weight <= $requiredRoleObject->weight;
-        });
+    private function handleUnauthorized($request) {
+        return $request->expectsJson()
+            ? response()->json(['message' => 'Unauthorized'], 403)
+            : back()->withInput()->withMessage('You are not authorized to access the specified route.');
     }
 }

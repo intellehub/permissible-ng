@@ -3,7 +3,6 @@
 namespace Shahnewaz\PermissibleNg\Http\Middleware;
 
 use Closure;
-use Shahnewaz\PermissibleNg\Exceptions\FeatureNotAllowedException;
 
 class PermissionAccessGuard
 {

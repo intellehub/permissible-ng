@@ -2,7 +2,6 @@
 
 namespace Shahnewaz\PermissibleNg\Providers;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Routing\Route;

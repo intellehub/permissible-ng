@@ -105,24 +105,6 @@ Route::group(['middleware' => ['roles:su,admin']], function () {
 });
 ```
 
-### Role Hierarchy
-(Needs to be enabled in the config file).
-
-Roles have weights - lower weight means higher privilege. For example:
-
-```php
-// Super Admin (highest privilege)
-Role::create(['name' => 'Super Admin', 'code' => 'su', 'weight' => 0]);
-
-// Admin (medium privilege)
-Role::create(['name' => 'Admin', 'code' => 'admin', 'weight' => 1]);
-
-// User (lowest privilege)
-Role::create(['name' => 'User', 'code' => 'user', 'weight' => 10]);
-```
-
-If a route is permitted for a role with weight 10, any role with a lower weight will automatically have access to that route.
-
 ### Permission Wildcards
 
 Use wildcards for broader permission control:
@@ -145,7 +127,6 @@ return [
     'enable_user_management_routes' => true,
     'first_last_name_migration' => true,
     'default_fallback_route' => 'backend.dashboard',
-    'hierarchy' => true,
 ];
 ```
 

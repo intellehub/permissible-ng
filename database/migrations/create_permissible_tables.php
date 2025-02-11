@@ -24,8 +24,7 @@ return new class extends Migration
         Schema::create('roles', function(Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('code');
-            $table->integer('weight');
+            $table->string('code')->unique();
             $table->softDeletes();
             $table->index('weight');
         });
