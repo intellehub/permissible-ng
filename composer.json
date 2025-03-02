@@ -19,7 +19,7 @@
   ],
   "require": {
     "php": "^8.2",
-    "laravel/framework": "^11.31",
+    "laravel/framework": "^11 | ^12",
     "vlucas/phpdotenv": "^v5.6",
     "tymon/jwt-auth": "^2.1"
   },
